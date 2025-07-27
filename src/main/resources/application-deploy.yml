@@ -1,0 +1,3 @@
+spring:
+  config:
+    import: "optional:configserver:http://user:FEC2025!@configure-service:8888"
