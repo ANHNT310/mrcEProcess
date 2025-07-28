@@ -89,6 +89,7 @@ public class ProcessViewServiceImpl implements ProcessViewService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProcessDetailDTO detail(String processDetailId) {
         GeneralInformationHistory generalInformationHistory = generalInformationHistoryRepository.findById(processDetailId)
                 .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
