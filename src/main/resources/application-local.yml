@@ -17,5 +17,5 @@ spring:
 app-feign:
   services:
     document: http://localhost:8083
-    workflow: http://localhost:8084
-    authentication: http://localhost:8082
+    workflow: http://127.0.0.1:8084
+    authentication: http://127.0.0.1:8082
