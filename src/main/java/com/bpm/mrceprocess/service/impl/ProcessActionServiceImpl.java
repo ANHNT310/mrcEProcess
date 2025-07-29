@@ -5,6 +5,7 @@ import com.bpm.exception.ApplicationException;
 import com.bpm.mrceprocess.common.dtos.CreateProcessRequestDTO;
 import com.bpm.mrceprocess.common.dtos.ProcessCanceledEventDTO;
 import com.bpm.mrceprocess.common.dtos.UpdateProcessRequestDTO;
+import com.bpm.mrceprocess.common.dtos.UserTaskCreatedEventDTO;
 import com.bpm.mrceprocess.common.enums.ProcessInformationHistStage;
 import com.bpm.mrceprocess.external.WorkflowService;
 import com.bpm.mrceprocess.external.payload.WorkflowStartPayloadDTO;
@@ -168,6 +169,12 @@ public class ProcessActionServiceImpl implements ProcessActionService {
 
         informationHistory.setStage(ProcessInformationHistStage.CANCEL);
         historyRepository.save(informationHistory);
+    }
+
+    @Override
+    public void workflowMoveNextStep(UserTaskCreatedEventDTO eventDTO) {
+        GeneralInformationHistory informationHistory = historyRepository.findByBusinessCode(eventDTO.getBusinessKey())
+                .orElse(null);
     }
 
     @Transactional

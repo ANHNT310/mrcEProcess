@@ -48,6 +48,10 @@ public class GeneralInformationHistory extends AuditorProvider {
     @Enumerated(EnumType.STRING)
     private ProcessInformationHistStage stage = ProcessInformationHistStage.DRAFT;
 
+    @ManyToOne
+    @JoinColumn(name = "status_id", referencedColumnName = "id")
+    private ProcessStatusMapping status;
+
     @OneToMany(
             mappedBy = "generalInformationHistory",
             cascade = CascadeType.ALL,

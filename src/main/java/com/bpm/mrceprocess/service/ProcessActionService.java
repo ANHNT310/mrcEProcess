@@ -3,6 +3,7 @@ package com.bpm.mrceprocess.service;
 import com.bpm.mrceprocess.common.dtos.CreateProcessRequestDTO;
 import com.bpm.mrceprocess.common.dtos.ProcessCanceledEventDTO;
 import com.bpm.mrceprocess.common.dtos.UpdateProcessRequestDTO;
+import com.bpm.mrceprocess.common.dtos.UserTaskCreatedEventDTO;
 
 public interface ProcessActionService {
 
@@ -19,4 +20,6 @@ public interface ProcessActionService {
     void publicProcess (String historyId);
 
     void workflowCanceled(ProcessCanceledEventDTO eventDTO);
+
+    void workflowMoveNextStep(UserTaskCreatedEventDTO eventDTO);
 }
