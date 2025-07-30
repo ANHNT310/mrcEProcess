@@ -50,17 +50,23 @@ spring:
 
   cloud:
     function:
-      definition: workflowCanceledConsumer
+      definition: workflowCanceledConsumer;userTaskCreatedEventConsumer
     stream:
       bindings:
         workflowCanceledConsumer-in-0:
           destination: workflow.canceled
+          group: e-process-service
+        userTaskCreatedEventConsumer-in-0:
+          destination: workflow.userTaskCreated
           group: e-process-service
       rabbit:
         bindings:
           workflowCanceledConsumer-in-0:
             consumer:
               binding-routing-key: "workflow.canceled.e-process"
+          userTaskCreatedEventConsumer-in-0:
+            consumer:
+              binding-routing-key: "workflow.userTaskCreated.e-process"
 ---
 security:
   service-key: 11ecde83-1597-454b-91c6-db37b4dc1156

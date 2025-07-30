@@ -7,6 +7,7 @@ import com.bpm.mrceprocess.common.dtos.ProcessCanceledEventDTO;
 import com.bpm.mrceprocess.common.dtos.UpdateProcessRequestDTO;
 import com.bpm.mrceprocess.common.dtos.UserTaskCreatedEventDTO;
 import com.bpm.mrceprocess.common.enums.ProcessInformationHistStage;
+import com.bpm.mrceprocess.component.ProcessStatusComponent;
 import com.bpm.mrceprocess.external.WorkflowService;
 import com.bpm.mrceprocess.external.payload.WorkflowStartPayloadDTO;
 import com.bpm.mrceprocess.mapping.*;
@@ -45,6 +46,7 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     private final OriginalDocumentMapper originalDocumentMapper;
     private final DiagramDescriptionMapper diagramDescriptionMapper;
     private final TermAbbreviationMapper termAbbreviationMapper;
+    private final ProcessStatusComponent processStatusComponent;
 
     @Override
     @Transactional
@@ -90,7 +92,6 @@ public class ProcessActionServiceImpl implements ProcessActionService {
 
         Category category = categoryRepository.findById(request.information().category())
                 .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
-
         informationHistory.setCategory(category);
 
         GeneralInformation generalInformation;
@@ -175,6 +176,12 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     public void workflowMoveNextStep(UserTaskCreatedEventDTO eventDTO) {
         GeneralInformationHistory informationHistory = historyRepository.findByBusinessCode(eventDTO.getBusinessKey())
                 .orElse(null);
+        if (informationHistory == null) {
+            log.error("Workflow next step informationHistory is null");
+            return;
+        }
+
+        processStatusComponent.updateStatus(informationHistory, eventDTO.getTaskName());
     }
 
     @Transactional

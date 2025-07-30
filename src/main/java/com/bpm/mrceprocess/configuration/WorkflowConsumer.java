@@ -1,6 +1,7 @@
 package com.bpm.mrceprocess.configuration;
 
 import com.bpm.mrceprocess.common.dtos.ProcessCanceledEventDTO;
+import com.bpm.mrceprocess.common.dtos.UserTaskCreatedEventDTO;
 import com.bpm.mrceprocess.service.ProcessActionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,4 +26,11 @@ public class WorkflowConsumer {
                 .subscribe();
     }
 
+    @Bean("userTaskCreatedEventConsumer")
+    public Consumer<Flux<UserTaskCreatedEventDTO>> userTaskCreatedEventConsumer() {
+        return flux -> flux
+                .doOnNext(event -> log.info("userTaskCreatedEventConsumer Event: {}", event))
+                .doOnNext(processActionService::workflowMoveNextStep)
+                .subscribe();
+    }
 }

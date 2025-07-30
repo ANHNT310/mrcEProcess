@@ -13,6 +13,7 @@ import org.springframework.util.CollectionUtils;
                 RelatedDocumentTemplateMapper.class})
 public interface CreateProcessRequestDTOMapper {
 
+    @Mapping(target = "status", ignore = true)
     @Mapping(target = "originalDocuments", source = "information.originalDocuments")
     @Mapping(target = "objectId", source = "information.objectId")
     @Mapping(target = "endDate", source = "information.endDate")

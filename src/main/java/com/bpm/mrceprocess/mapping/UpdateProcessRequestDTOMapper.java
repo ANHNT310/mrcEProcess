@@ -19,7 +19,6 @@ public interface UpdateProcessRequestDTOMapper {
     @Mapping(target = "effectiveDate", source = "information.effectiveDate")
     @Mapping(target = "duration", source = "information.duration")
     @Mapping(target = "diagramId", source = "diagram.diagramId")
-    // --- Bỏ qua tất cả các trường phức tạp, collection, và các trường chỉ đọc ---
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "stage", ignore = true)
@@ -30,6 +29,7 @@ public interface UpdateProcessRequestDTOMapper {
     @Mapping(target = "diagramDescriptions", ignore = true)
     @Mapping(target = "termAbbreviations", ignore = true)
     @Mapping(target = "relatedDocument", ignore = true)
+    @Mapping(target = "status", ignore = true)
     void partialUpdate(UpdateProcessRequestDTO.Request request, @MappingTarget GeneralInformationHistory history);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
