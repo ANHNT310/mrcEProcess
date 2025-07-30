@@ -26,6 +26,6 @@ public class GeneralInformationHistoryDTO implements Serializable {
     String diagramId;
     String objectId;
     String businessCode;
-    ProcessInformationHistStage stage;
     String categoryId;
+    ProcessStatusMappingDTO status;
 }

@@ -88,7 +88,6 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     public GeneralInformationHistory save (CreateProcessRequestDTO.Request request, ProcessInformationHistStage stage) {
 
         GeneralInformationHistory informationHistory = createProcessRequestDTOMapper.toGeneralInformationHistory(request);
-        informationHistory.setStage(stage);
 
         Category category = categoryRepository.findById(request.information().category())
                 .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
@@ -140,7 +139,6 @@ public class ProcessActionServiceImpl implements ProcessActionService {
                 .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
 
 
-        informationHistory.setStage(ProcessInformationHistStage.VALID);
         informationHistory = historyRepository.save(informationHistory);
 
         GeneralInformation generalInformation = informationHistory.getGeneralInformation();
@@ -168,7 +166,6 @@ public class ProcessActionServiceImpl implements ProcessActionService {
             return;
         }
 
-        informationHistory.setStage(ProcessInformationHistStage.CANCEL);
         historyRepository.save(informationHistory);
     }
 

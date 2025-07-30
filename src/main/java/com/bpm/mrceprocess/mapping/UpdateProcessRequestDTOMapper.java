@@ -21,7 +21,6 @@ public interface UpdateProcessRequestDTOMapper {
     @Mapping(target = "diagramId", source = "diagram.diagramId")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "version", ignore = true)
-    @Mapping(target = "stage", ignore = true)
     @Mapping(target = "businessCode", ignore = true)
     @Mapping(target = "generalInformation", ignore = true)
     @Mapping(target = "category", ignore = true)

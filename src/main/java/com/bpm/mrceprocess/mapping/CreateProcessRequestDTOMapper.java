@@ -28,7 +28,6 @@ public interface CreateProcessRequestDTOMapper {
     @Mapping(target = "businessCode", ignore = true)
     @Mapping(target = "generalInformation", ignore = true)
     @Mapping(target = "version", ignore = true)
-    @Mapping(target = "stage", ignore = true)
     @Mapping(target = "id", ignore = true)
     GeneralInformationHistory toGeneralInformationHistory (CreateProcessRequestDTO.Request request);
 

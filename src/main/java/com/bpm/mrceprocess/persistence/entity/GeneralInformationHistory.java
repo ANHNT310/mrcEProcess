@@ -45,9 +45,6 @@ public class GeneralInformationHistory extends AuditorProvider {
 
     private String businessCode;
 
-    @Enumerated(EnumType.STRING)
-    private ProcessInformationHistStage stage = ProcessInformationHistStage.DRAFT;
-
     @ManyToOne
     @JoinColumn(name = "status_id", referencedColumnName = "id")
     private ProcessStatusMapping status;

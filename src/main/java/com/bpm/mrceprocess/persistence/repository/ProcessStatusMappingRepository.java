@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface ProcessStatusMappingRepository extends JpaRepository<ProcessStatusMapping, Integer> {
+public interface ProcessStatusMappingRepository extends JpaRepository<ProcessStatusMapping, String> {
 
     Optional<ProcessStatusMapping> findByScopeAndDefaultStatus(String scope, boolean defaultStatus);
 
