@@ -17,7 +17,7 @@ public class ProcessStatusMapping {
 
     private String taskName;
 
-    private String status;
+    private String name;
 
     private String scope;
 

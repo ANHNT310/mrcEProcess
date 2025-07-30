@@ -11,6 +11,7 @@ import java.util.List;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface GeneralInformationHistoryMapper {
+
     GeneralInformationHistory toEntity(GeneralInformationHistoryDTO generalInformationHistoryDTO);
 
     GeneralInformationHistoryDTO toDto(GeneralInformationHistory generalInformationHistory);

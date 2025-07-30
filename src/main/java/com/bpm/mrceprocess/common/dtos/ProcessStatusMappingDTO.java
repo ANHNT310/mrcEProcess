@@ -11,7 +11,7 @@ import java.io.Serializable;
 public class ProcessStatusMappingDTO implements Serializable {
     String id;
     String taskName;
-    String status;
+    String name;
     String scope;
     boolean defaultStatus;
     String uniqueScopeForDefault;
