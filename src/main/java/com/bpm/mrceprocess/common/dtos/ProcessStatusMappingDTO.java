@@ -1,5 +1,6 @@
 package com.bpm.mrceprocess.common.dtos;
 
+import com.bpm.mrceprocess.common.enums.ProcessStatusSeverityEnum;
 import lombok.Value;
 
 import java.io.Serializable;
@@ -15,4 +16,5 @@ public class ProcessStatusMappingDTO implements Serializable {
     String scope;
     boolean defaultStatus;
     String uniqueScopeForDefault;
+    ProcessStatusSeverityEnum severity;
 }
