@@ -15,6 +15,7 @@ import com.bpm.mrceprocess.persistence.entity.*;
 import com.bpm.mrceprocess.persistence.repository.CategoryRepository;
 import com.bpm.mrceprocess.persistence.repository.GeneralInformationHistoryRepository;
 import com.bpm.mrceprocess.persistence.repository.GeneralInformationRepository;
+import com.bpm.mrceprocess.persistence.repository.ProcessStatusMappingRepository;
 import com.bpm.mrceprocess.service.ProcessActionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,7 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     @Override
     @Transactional
     public CreateProcessRequestDTO.Response createDraft(CreateProcessRequestDTO.Request request) {
-        GeneralInformationHistory informationHistory = save(request, ProcessInformationHistStage.DRAFT);
+        GeneralInformationHistory informationHistory = save(request);
         return new CreateProcessRequestDTO.Response(informationHistory.getGeneralInformation().getId(),
                 informationHistory.getId());
     }
@@ -59,7 +60,7 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     @Override
     @Transactional
     public CreateProcessRequestDTO.Response createSubmit(CreateProcessRequestDTO.Request request) {
-        GeneralInformationHistory informationHistory = save(request, ProcessInformationHistStage.SUBMIT);
+        GeneralInformationHistory informationHistory = save(request);
         WorkflowStartPayloadDTO.Request startWorkflowReq = new WorkflowStartPayloadDTO.Request(
                 informationHistory.getGeneralInformation().getScope().name(),
                 new WorkflowStartPayloadDTO.Request.Variable(informationHistory.getId())
@@ -85,9 +86,10 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     }
 
     @Transactional
-    public GeneralInformationHistory save (CreateProcessRequestDTO.Request request, ProcessInformationHistStage stage) {
+    public GeneralInformationHistory save (CreateProcessRequestDTO.Request request) {
 
         GeneralInformationHistory informationHistory = createProcessRequestDTOMapper.toGeneralInformationHistory(request);
+
 
         Category category = categoryRepository.findById(request.information().category())
                 .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
@@ -100,6 +102,9 @@ public class ProcessActionServiceImpl implements ProcessActionService {
             generalInformation = generalInformationRepository.findById(request.information().id())
                     .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
         }
+
+        ProcessStatusMapping processStatusMapping = processStatusComponent.getDefaultStatus(generalInformation.getScope());
+        informationHistory.setStatus(processStatusMapping);
 
         informationHistory.setGeneralInformation(generalInformation);
 

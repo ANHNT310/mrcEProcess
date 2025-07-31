@@ -1,5 +1,6 @@
 package com.bpm.mrceprocess.component;
 
+import com.bpm.mrceprocess.common.enums.ProcessScopeEnum;
 import com.bpm.mrceprocess.persistence.entity.GeneralInformationHistory;
 import com.bpm.mrceprocess.persistence.entity.ProcessStatusMapping;
 import com.bpm.mrceprocess.persistence.repository.GeneralInformationHistoryRepository;
@@ -22,5 +23,9 @@ public class ProcessStatusComponent {
             informationHistory.setStatus(processStatus);
             informationHistoryRepository.save(informationHistory);
         }
+    }
+
+    public ProcessStatusMapping getDefaultStatus (ProcessScopeEnum scope) {
+        return processStatusMappingRepository.findByScopeAndDefaultStatus(scope.name(), true).orElse(null);
     }
 }
