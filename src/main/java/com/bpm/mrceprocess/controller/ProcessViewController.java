@@ -3,6 +3,8 @@ package com.bpm.mrceprocess.controller;
 import com.bpm.dtos.BaseResponse;
 import com.bpm.dtos.LazyLoadEventDTO;
 import com.bpm.dtos.PageResponse;
+import com.bpm.mrceprocess.common.dtos.GeneralInformationDTO;
+import com.bpm.mrceprocess.common.dtos.GeneralInformationHistoryDTO;
 import com.bpm.mrceprocess.common.dtos.ProcessDetailDTO;
 import com.bpm.mrceprocess.common.dtos.ProcessDetailInformationViewDTO;
 import com.bpm.mrceprocess.common.enums.ProcessScopeEnum;
@@ -45,11 +47,19 @@ public class ProcessViewController {
         return BaseResponse.success(processViewService.detail(processDetailId));
     }
 
-    @PostMapping("/available/{scope}")
+    @PostMapping("/available/scope/{scope}")
     @Operation(summary = "Get available processes by scope", description = "Retrieves a paginated list of available (published) processes filtered by a specific scope.")
-    public BaseResponse<PageResponse<ProcessDetailInformationViewDTO>> getAvailable(
+    public BaseResponse<PageResponse<GeneralInformationDTO>> getAvailableByScope(
             @Parameter(description = "The scope of the processes to retrieve", required = true) @PathVariable ProcessScopeEnum scope,
             @RequestBody LazyLoadEventDTO eventDTO) {
-        return BaseResponse.success(PageResponse.from(processViewService.available(scope, eventDTO)));
+        return BaseResponse.success(PageResponse.from(processViewService.availableByScope(scope, eventDTO)));
+    }
+
+    @PostMapping("/histories/{generalId}")
+    @Operation(summary = "Get histories processes by general", description = "Retrieves a paginated list of available (published) processes filtered by a specific scope.")
+    public BaseResponse<PageResponse<GeneralInformationHistoryDTO>> histories(
+            @Parameter(description = "The scope of the processes to retrieve", required = true) @PathVariable String generalId,
+            @RequestBody LazyLoadEventDTO eventDTO) {
+        return BaseResponse.success(PageResponse.from(processViewService.histories(generalId, eventDTO)));
     }
 }

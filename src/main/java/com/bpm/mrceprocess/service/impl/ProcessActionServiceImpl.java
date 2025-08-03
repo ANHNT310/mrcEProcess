@@ -14,6 +14,7 @@ import com.bpm.mrceprocess.persistence.entity.*;
 import com.bpm.mrceprocess.persistence.repository.CategoryRepository;
 import com.bpm.mrceprocess.persistence.repository.GeneralInformationHistoryRepository;
 import com.bpm.mrceprocess.persistence.repository.GeneralInformationRepository;
+import com.bpm.mrceprocess.persistence.repository.ProcessScopeConfigRepository;
 import com.bpm.mrceprocess.service.ProcessActionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,7 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     private final OriginalDocumentMapper originalDocumentMapper;
     private final DiagramDescriptionMapper diagramDescriptionMapper;
     private final TermAbbreviationMapper termAbbreviationMapper;
+    private final ProcessScopeConfigRepository processScopeConfigRepository;
 
     @Override
     @Transactional
@@ -92,6 +94,12 @@ public class ProcessActionServiceImpl implements ProcessActionService {
                 .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
         informationHistory.setCategory(category);
 
+        ProcessScopeConfig scopeConfig = processScopeConfigRepository.findById(request.information().scope())
+                .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
+
+        scopeConfig.getStatuses().stream().filter(ProcessScopeStatus::isDefaultBegin).findFirst()
+                .ifPresent(informationHistory::setStatus);
+
         GeneralInformation generalInformation;
         int historyVersion = 1;
         if (StringUtils.isEmpty(request.information().id())) {
@@ -113,6 +121,7 @@ public class ProcessActionServiceImpl implements ProcessActionService {
 
         informationHistory.setGeneralInformation(generalInformation);
         informationHistory.setVersion(historyVersion);
+        informationHistory.setCode(String.format("%s-%s", generalInformation.getCode(), String.format("%05d", historyVersion)));
 
         return historyRepository.save(informationHistory);
     }
@@ -144,26 +153,19 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     @Override
     @Transactional
     public void publicProcess(String historyId) {
-        final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("ddMMyy");
-
         GeneralInformationHistory informationHistory = historyRepository.findById(historyId)
                 .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
 
 
-        informationHistory = historyRepository.save(informationHistory);
-
         GeneralInformation generalInformation = informationHistory.getGeneralInformation();
-        if (generalInformation.getAvailable() == null) {
-            LocalDate createdAt = generalInformation.getCreatedAt().toLocalDate();
-            long count = generalInformationRepository.countByAvailableIsNotNullAndCreatedAtDate(createdAt);
-            long nextValue = count + 1;
-            String datePart = createdAt.format(DATE_FORMATTER);
-            String sequencePart = String.format("%03d", nextValue);
-            String code = String.format("%s-%s-%s", "EF", datePart, sequencePart);
-            generalInformation.setCode(code);
+        ProcessScopeStatus scopeStatus = generalInformation.getScope().getStatuses().stream()
+                .filter(ProcessScopeStatus::isDefaultEnd).findAny().orElse(null);
+        if (scopeStatus != null) {
+            informationHistory.setStatus(scopeStatus);
         }
-
         generalInformation.setAvailable(informationHistory);
+
+        historyRepository.save(informationHistory);
         generalInformationRepository.save(generalInformation);
     }
 

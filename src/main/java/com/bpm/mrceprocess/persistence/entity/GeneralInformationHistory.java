@@ -47,6 +47,8 @@ public class GeneralInformationHistory extends AuditorProvider {
 
     private String businessCode;
 
+    private String code;
+
     @ManyToOne()
     @JoinColumn(name = "status_id", referencedColumnName = "id")
     private ProcessScopeStatus status;

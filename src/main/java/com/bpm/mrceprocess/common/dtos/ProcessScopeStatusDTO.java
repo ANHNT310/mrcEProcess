@@ -14,4 +14,6 @@ public class ProcessScopeStatusDTO implements Serializable {
     String taskName;
     String name;
     ProcessStatusSeverityEnum severity;
+    boolean start;
+    boolean end;
 }

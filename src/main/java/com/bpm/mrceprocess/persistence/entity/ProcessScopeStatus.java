@@ -31,4 +31,8 @@ public class ProcessScopeStatus {
 
     @OneToMany(mappedBy = "status", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<GeneralInformationHistory> processes = new HashSet<>();
+
+    private boolean defaultBegin = false;
+
+    private boolean defaultEnd = false;
 }

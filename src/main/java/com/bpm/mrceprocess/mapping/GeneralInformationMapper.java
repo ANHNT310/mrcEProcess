@@ -14,7 +14,7 @@ public interface GeneralInformationMapper {
     @Mapping(target = "scope", ignore = true)
     GeneralInformation toEntity(GeneralInformationDTO generalInformationDto);
 
-    @Mapping(target = "availableId", expression = "java(getAvailableId(generalInformation))")
+    @Mapping(target = "availableId", source = "available.id")
     @Mapping(target = "scope", source = "scope.name")
     GeneralInformationDTO toDto(GeneralInformation generalInformation);
 
@@ -26,11 +26,4 @@ public interface GeneralInformationMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     GeneralInformation partialUpdate(GeneralInformation generalInformationDto, @MappingTarget GeneralInformation generalInformation);
-
-    default String getAvailableId(GeneralInformation generalInformation) {
-        if (generalInformation.getAvailable() != null) {
-            return generalInformation.getAvailable().getId();
-        }
-        return null;
-    }
 }

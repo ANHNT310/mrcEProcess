@@ -28,4 +28,5 @@ public class GeneralInformationHistoryDTO implements Serializable {
     String businessCode;
     String categoryId;
     ProcessScopeStatusDTO status;
+    String code;
 }
