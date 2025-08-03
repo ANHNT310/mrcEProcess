@@ -12,7 +12,7 @@ public class GeneralInformationDTO implements Serializable {
     String code;
     String shortDescription;
     String name;
-    ProcessScopeEnum scope;
+    String scope;
     LocalDateTime createdAt;
     String createdBy;
     LocalDateTime updatedAt;

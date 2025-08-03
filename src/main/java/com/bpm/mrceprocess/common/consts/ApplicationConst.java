@@ -6,7 +6,7 @@ public class ApplicationConst {
 
     public static final String USER_KEY_HEADER = "x-user";
 
-    public static final String WORKFLOW_TENANT = "E-PROCESS";
+    public static final String WORKFLOW_TENANT = "e-process";
 
     public static final String[] WHITELISTED_URLS = {
             "/swagger-ui/**",
@@ -15,4 +15,6 @@ public class ApplicationConst {
             "/token/user",
             "/token/client-service",
     };
+
+    public static final String GENERAL_INFORMATION_PREFIX_CODE = "EP";
 }

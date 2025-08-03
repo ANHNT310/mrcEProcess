@@ -10,7 +10,7 @@ import org.springframework.util.CollectionUtils;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         uses = {TermAbbreviationMapper.class, RelatedDocumentMapper.class,
                 OriginalDocumentMapper.class, DiagramDescriptionMapper.class,
-                RelatedDocumentTemplateMapper.class})
+                RelatedDocumentTemplateMapper.class, MappingHelper.class})
 public interface CreateProcessRequestDTOMapper {
 
     @Mapping(target = "status", ignore = true)
@@ -32,7 +32,7 @@ public interface CreateProcessRequestDTOMapper {
     GeneralInformationHistory toGeneralInformationHistory (CreateProcessRequestDTO.Request request);
 
     @Mapping(target = "shortDescription", source = "information.shortDescription")
-    @Mapping(target = "scope", source = "information.scope")
+    @Mapping(target = "scope", source = "information.scope", qualifiedByName = "stringToProcessScopeConfig")
     @Mapping(target = "name", source = "information.name")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "histories", ignore = true)

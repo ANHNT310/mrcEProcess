@@ -1,5 +1,6 @@
 package com.bpm.mrceprocess.persistence.repository;
 
+import com.bpm.mrceprocess.persistence.entity.GeneralInformation;
 import com.bpm.mrceprocess.persistence.entity.GeneralInformationHistory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,4 +16,6 @@ public interface GeneralInformationHistoryRepository extends JpaRepository<Gener
     Page<GeneralInformationHistory> findByBusinessCodeIn(List<String> businessCodes, Pageable pageable);
 
     Optional<GeneralInformationHistory> findByBusinessCode(String businessCode);
+
+    int countByGeneralInformation(GeneralInformation generalInformation);
 }

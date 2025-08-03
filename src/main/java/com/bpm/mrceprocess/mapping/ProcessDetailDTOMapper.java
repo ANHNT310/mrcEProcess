@@ -8,7 +8,7 @@ import org.mapstruct.*;
         uses = {OriginalDocumentMapper.class, DiagramDescriptionMapper.class,
                 GeneralInformationMapper.class, GeneralInformationHistoryMapper.class,
                 TermAbbreviationMapper.class, RelatedDocumentMapper.class, CategoryMapper.class,
-                RelatedDocumentTemplateMapper.class, ProcessStatusMappingMapper.class})
+                RelatedDocumentTemplateMapper.class})
 public interface ProcessDetailDTOMapper {
 
     @Mapping(target = "informationHistory", source = "generalInformationHistory")

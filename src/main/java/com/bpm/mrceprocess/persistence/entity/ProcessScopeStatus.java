@@ -4,13 +4,15 @@ import com.bpm.mrceprocess.common.enums.ProcessStatusSeverityEnum;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Formula;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "process_status_mapping")
-public class ProcessStatusMapping {
+@Table(name = "mst_process_scope_status")
+public class ProcessScopeStatus {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -20,15 +22,13 @@ public class ProcessStatusMapping {
 
     private String name;
 
-    private String scope;
-
-    @Column(name = "default_status")
-    private boolean defaultStatus = false;
-
     @Enumerated(EnumType.STRING)
     private ProcessStatusSeverityEnum severity;
 
-    @Formula("case when default_status = true then scope else null end")
-    @Column(unique = true, insertable = false, updatable = false)
-    private String uniqueScopeForDefault;
+    @ManyToOne
+    @JoinColumn(name = "scope_id", referencedColumnName = "id")
+    private ProcessScopeConfig scope;
+
+    @OneToMany(mappedBy = "status", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    private Set<GeneralInformationHistory> processes = new HashSet<>();
 }

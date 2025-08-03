@@ -2,12 +2,11 @@ package com.bpm.mrceprocess.service.impl;
 
 import com.bpm.enums.ApplicationMessage;
 import com.bpm.exception.ApplicationException;
+import com.bpm.mrceprocess.common.consts.ApplicationConst;
 import com.bpm.mrceprocess.common.dtos.CreateProcessRequestDTO;
 import com.bpm.mrceprocess.common.dtos.ProcessCanceledEventDTO;
 import com.bpm.mrceprocess.common.dtos.UpdateProcessRequestDTO;
 import com.bpm.mrceprocess.common.dtos.UserTaskCreatedEventDTO;
-import com.bpm.mrceprocess.common.enums.ProcessInformationHistStage;
-import com.bpm.mrceprocess.component.ProcessStatusComponent;
 import com.bpm.mrceprocess.external.WorkflowService;
 import com.bpm.mrceprocess.external.payload.WorkflowStartPayloadDTO;
 import com.bpm.mrceprocess.mapping.*;
@@ -15,7 +14,6 @@ import com.bpm.mrceprocess.persistence.entity.*;
 import com.bpm.mrceprocess.persistence.repository.CategoryRepository;
 import com.bpm.mrceprocess.persistence.repository.GeneralInformationHistoryRepository;
 import com.bpm.mrceprocess.persistence.repository.GeneralInformationRepository;
-import com.bpm.mrceprocess.persistence.repository.ProcessStatusMappingRepository;
 import com.bpm.mrceprocess.service.ProcessActionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +45,6 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     private final OriginalDocumentMapper originalDocumentMapper;
     private final DiagramDescriptionMapper diagramDescriptionMapper;
     private final TermAbbreviationMapper termAbbreviationMapper;
-    private final ProcessStatusComponent processStatusComponent;
 
     @Override
     @Transactional
@@ -61,8 +58,9 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     @Transactional
     public CreateProcessRequestDTO.Response createSubmit(CreateProcessRequestDTO.Request request) {
         GeneralInformationHistory informationHistory = save(request);
+
         WorkflowStartPayloadDTO.Request startWorkflowReq = new WorkflowStartPayloadDTO.Request(
-                informationHistory.getGeneralInformation().getScope().name(),
+                informationHistory.getGeneralInformation().getScope().getWorkflowName(),
                 new WorkflowStartPayloadDTO.Request.Variable(informationHistory.getId())
         );
         WorkflowStartPayloadDTO.Response start = workflowService.startWorkflow(startWorkflowReq);
@@ -90,23 +88,31 @@ public class ProcessActionServiceImpl implements ProcessActionService {
 
         GeneralInformationHistory informationHistory = createProcessRequestDTOMapper.toGeneralInformationHistory(request);
 
-
         Category category = categoryRepository.findById(request.information().category())
                 .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
         informationHistory.setCategory(category);
 
         GeneralInformation generalInformation;
+        int historyVersion = 1;
         if (StringUtils.isEmpty(request.information().id())) {
-            generalInformation = generalInformationRepository.save(createProcessRequestDTOMapper.toGeneralInformation(request));
+            int existedAvailableCode = generalInformationRepository.countByCodeIsNotNull();
+            int nextValue = existedAvailableCode + 1;
+            String sequencePart = String.format("%03d", nextValue);
+
+            generalInformation = createProcessRequestDTOMapper.toGeneralInformation(request);
+            generalInformation.setCode(String.format("%s-%s", ApplicationConst.GENERAL_INFORMATION_PREFIX_CODE, sequencePart));
+
+            generalInformation = generalInformationRepository.save(generalInformation);
         } else {
             generalInformation = generalInformationRepository.findById(request.information().id())
                     .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
+
+            int existHistory = historyRepository.countByGeneralInformation(generalInformation);
+            historyVersion = existHistory + 1;
         }
 
-        ProcessStatusMapping processStatusMapping = processStatusComponent.getDefaultStatus(generalInformation.getScope());
-        informationHistory.setStatus(processStatusMapping);
-
         informationHistory.setGeneralInformation(generalInformation);
+        informationHistory.setVersion(historyVersion);
 
         return historyRepository.save(informationHistory);
     }
@@ -162,6 +168,7 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     }
 
     @Override
+    @Transactional
     public void workflowCanceled(ProcessCanceledEventDTO eventDTO) {
         GeneralInformationHistory informationHistory = historyRepository.findByBusinessCode(eventDTO.getBusinessKey())
                 .orElse(null);
@@ -175,6 +182,7 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     }
 
     @Override
+    @Transactional
     public void workflowMoveNextStep(UserTaskCreatedEventDTO eventDTO) {
         GeneralInformationHistory informationHistory = historyRepository.findByBusinessCode(eventDTO.getBusinessKey())
                 .orElse(null);
@@ -183,7 +191,18 @@ public class ProcessActionServiceImpl implements ProcessActionService {
             return;
         }
 
-        processStatusComponent.updateStatus(informationHistory, eventDTO.getTaskName());
+        ProcessScopeConfig processScopeConfig = informationHistory.getGeneralInformation().getScope();
+        if (processScopeConfig == null) {
+            log.error("Workflow next step processScopeConfig is null");
+            return;
+        }
+
+        //Update status
+        ProcessScopeStatus processScopeStatus = processScopeConfig.getStatuses().stream()
+                .filter(f -> f.getTaskName().equals(eventDTO.getTaskName()))
+                .findFirst().orElse(null);
+        informationHistory.setStatus(processScopeStatus);
+        historyRepository.save(informationHistory);
     }
 
     @Transactional

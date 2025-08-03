@@ -2,12 +2,14 @@ package com.bpm.mrceprocess.persistence.entity;
 
 import com.bpm.mrceprocess.common.enums.EffectiveType;
 import com.bpm.mrceprocess.common.enums.ProcessInformationHistStage;
+import com.bpm.mrceprocess.common.enums.ProcessStatusSeverityEnum;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Getter
@@ -45,9 +47,9 @@ public class GeneralInformationHistory extends AuditorProvider {
 
     private String businessCode;
 
-    @ManyToOne
+    @ManyToOne()
     @JoinColumn(name = "status_id", referencedColumnName = "id")
-    private ProcessStatusMapping status;
+    private ProcessScopeStatus status;
 
     @OneToMany(
             mappedBy = "generalInformationHistory",

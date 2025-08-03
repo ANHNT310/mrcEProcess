@@ -19,7 +19,7 @@ public class CreateProcessRequestDTO {
                                   String shortDescription,
                                   String name,
                                   String objectId,
-                                  ProcessScopeEnum scope,
+                                  String scope,
                                   String category,
                                   EffectiveType effectiveType,
                                   LocalDateTime effectiveDate,

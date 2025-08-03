@@ -9,9 +9,10 @@ import org.mapstruct.*;
 
 import java.util.List;
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING, uses = {MappingHelper.class})
 public interface GeneralInformationHistoryMapper {
 
+    @Mapping(source = "status", target = "status")
     GeneralInformationHistory toEntity(GeneralInformationHistoryDTO generalInformationHistoryDTO);
 
     GeneralInformationHistoryDTO toDto(GeneralInformationHistory generalInformationHistory);
@@ -36,7 +37,7 @@ public interface GeneralInformationHistoryMapper {
 
     @Mapping(target = "historyId", source = "id")
     @Mapping(target = "generalId", source = "generalInformation.id")
-    @Mapping(target = "category", expression = "java(entity.getCategory().getVieName() + '-' + entity.getCategory().getEnName())")
+    @Mapping(target = "category", expression = "java(entity.getCategory().getVieName() + \'-\' + entity.getCategory().getEnName())")
     @Mapping(target = "effectiveType", source = "effectiveType")
     @Mapping(target = "effectiveDate", source = "effectiveDate")
     @Mapping(target = "endDate", source = "endDate")

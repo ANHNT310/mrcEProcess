@@ -4,10 +4,7 @@ import com.bpm.dtos.SelectItem;
 import com.bpm.mrceprocess.common.enums.DocumentStatus;
 import com.bpm.mrceprocess.common.enums.EffectiveType;
 import com.bpm.mrceprocess.common.enums.ProcessScopeEnum;
-import com.bpm.mrceprocess.persistence.repository.AuthorityRepository;
-import com.bpm.mrceprocess.persistence.repository.CategoryRepository;
-import com.bpm.mrceprocess.persistence.repository.DocumentTypeRepository;
-import com.bpm.mrceprocess.persistence.repository.GeneralInformationRepository;
+import com.bpm.mrceprocess.persistence.repository.*;
 import com.bpm.mrceprocess.service.MasterDataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,10 +19,11 @@ public class MasterDataServiceImpl implements MasterDataService {
     private final DocumentTypeRepository documentTypeRepository;
     private final AuthorityRepository authorityRepository;
     private final GeneralInformationRepository generalInformationRepository;
+    private final GeneralInformationScopeConfigRepository scopeConfigRepository;
 
     @Override
     public List<SelectItem> processScope() {
-        return ProcessScopeEnum.toSelectItemList();
+        return scopeConfigRepository.findAll().stream().map(m -> new SelectItem(m.getId(), m.getName())).toList();
     }
 
     @Override
