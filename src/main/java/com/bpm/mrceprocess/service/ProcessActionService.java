@@ -22,4 +22,6 @@ public interface ProcessActionService {
     void workflowCanceled(ProcessCanceledEventDTO eventDTO);
 
     void workflowMoveNextStep(UserTaskCreatedEventDTO eventDTO);
+
+    void deactivateProcess(String historyId);
 }

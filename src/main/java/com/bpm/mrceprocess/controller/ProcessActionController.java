@@ -83,4 +83,16 @@ public class ProcessActionController {
         processActionService.publicProcess(historyId);
         return BaseResponse.success(null);
     }
+
+    @PutMapping("/deactivate/{historyId}")
+    @Operation(summary = "Deactivate a process", description = "Deactivates an active process, making it unavailable.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Process deactivated successfully"),
+            @ApiResponse(responseCode = "404", description = "Process not found")
+    })
+    public BaseResponse<Void> deactivateProcess(@Parameter(description = "ID of the process history record to deactivate", required = true) @PathVariable String historyId) {
+        processActionService.deactivateProcess(historyId);
+        return BaseResponse.success(null);
+    }
+
 }

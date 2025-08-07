@@ -207,6 +207,21 @@ public class ProcessActionServiceImpl implements ProcessActionService {
         historyRepository.save(informationHistory);
     }
 
+    @Override
+    @Transactional
+    public void deactivateProcess(String historyId) {
+        GeneralInformationHistory informationHistory = historyRepository.findById(historyId)
+                .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
+
+        informationHistory.setDeactivate(true);
+        historyRepository.save(informationHistory);
+
+        generalInformationRepository.findByAvailable(informationHistory).ifPresent(generalInformation -> {
+            generalInformation.setAvailable(null);
+            generalInformationRepository.save(generalInformation);
+        });
+    }
+
     @Transactional
     protected GeneralInformationHistory update(UpdateProcessRequestDTO.Request request) {
         // 1. Validate input
