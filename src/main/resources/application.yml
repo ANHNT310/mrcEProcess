@@ -59,20 +59,26 @@ spring:
         userTaskCreatedEventConsumer-in-0:
           destination: workflow.userTaskCreated
           group: e-process-service
+        serviceRegisterEventProducer-out-0:
+          destination: workflow.serviceRegister
       rabbit:
         bindings:
           workflowCanceledConsumer-in-0:
             consumer:
               binding-routing-key: "workflow.canceled.e-process"
-              autoBindDlq: true          # Tự động tạo và bind một Dead Letter Queue (DLQ)
-              requeueRejected: false     # QUAN TRỌNG: Không đưa lại message lỗi vào hàng đợi chính (tránh vòng lặp vô hạn)
-              republishToDlq: true       # Gửi lại message tới DLQ kèm theo thông tin lỗi (stack trace) trong header, rất hữu ích cho việc debug
+              autoBindDlq: true
+              requeueRejected: false
+              republishToDlq: true
           userTaskCreatedEventConsumer-in-0:
             consumer:
               binding-routing-key: "workflow.userTaskCreated.e-process"
               autoBindDlq: true
               requeueRejected: false
               republishToDlq: true
+          serviceRegisterEventProducer-out-0:
+            producer:
+              exchange-type: topic
+              delivery-mode: persistent
 ---
 security:
   service-key: 11ecde83-1597-454b-91c6-db37b4dc1156
