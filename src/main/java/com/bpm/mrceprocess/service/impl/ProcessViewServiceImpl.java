@@ -29,6 +29,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -81,15 +82,17 @@ public class ProcessViewServiceImpl implements ProcessViewService {
         Map<String, ProcessDetailInformationView> informationViews = processDetailInformationViewRepository.findByHistoryIdIn(eProcessIds)
                 .stream().collect(Collectors.toMap(ProcessDetailInformationView::getHistoryId, m -> m));
 
-
-        List<ProcessDetailInformationPendingDTO> informationPendingDTOS = pending.stream().map(m -> {
+        List<ProcessDetailInformationPendingDTO> informationPendingDTOS = new ArrayList<>();
+        pending.forEach(m -> {
             String eProcessId = m.getVariables().getOrDefault("eProcessId", null).toString();
-            if (StringUtils.isEmpty(eProcessId)) {
-                return new ProcessDetailInformationPendingDTO();
+            if (!StringUtils.isEmpty(eProcessId)) {
+                ProcessDetailInformationView view = informationViews.get(eProcessId);
+                if (view == null) {
+                    return;
+                }
+                informationPendingDTOS.add(processDetailInformationPendingDTOMapper.toDTO(view, m));
             }
-            ProcessDetailInformationView view = informationViews.get(eProcessId);
-            return processDetailInformationPendingDTOMapper.toDTO(view, m);
-        }).toList();
+        });
 
         return PageableHelper.createPageFromList(informationPendingDTOS, eventDTO);
     }
