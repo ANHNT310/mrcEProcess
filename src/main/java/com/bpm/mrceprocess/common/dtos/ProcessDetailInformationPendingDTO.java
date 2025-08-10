@@ -4,17 +4,14 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Value;
-import org.springframework.cglib.core.Local;
 
-import java.io.Serializable;
-import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProcessDetailInformationViewDTO implements Serializable {
+public class ProcessDetailInformationPendingDTO {
+
     @Size(max = 255)
     String generalId;
 
@@ -61,4 +58,8 @@ public class ProcessDetailInformationViewDTO implements Serializable {
     String createdBy;
 
     String taskId;
+
+    String taskName;
+
+    String processDefinitionName;
 }

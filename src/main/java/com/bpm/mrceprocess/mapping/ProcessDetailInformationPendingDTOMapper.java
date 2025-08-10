@@ -1,18 +1,19 @@
 package com.bpm.mrceprocess.mapping;
 
-import com.bpm.mrceprocess.common.dtos.ProcessDetailInformationViewDTO;
+import com.bpm.mrceprocess.common.dtos.ProcessDetailInformationPendingDTO;
+import com.bpm.mrceprocess.external.payload.WorkflowTaskSummaryDTO;
 import com.bpm.mrceprocess.persistence.entity.ProcessDetailInformationView;
-import org.mapstruct.*;
-
-import java.util.Map;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.ReportingPolicy;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
-public interface ProcessDetailInformationViewMapper {
-    ProcessDetailInformationView toEntity(ProcessDetailInformationViewDTO processDetailInformationViewDTO);
+public interface ProcessDetailInformationPendingDTOMapper {
 
-    ProcessDetailInformationViewDTO toDto(ProcessDetailInformationView processDetailInformationView);
-
-    @Mapping(target = "taskId", expression = "java(workflowTask.getOrDefault(view.getBusinessCode(), null))")
+    @Mapping(target = "taskId", source = "workflowTask.taskId")
+    @Mapping(target = "taskName", source = "workflowTask.taskName")
+    @Mapping(target = "processDefinitionName", source = "workflowTask.processDefinitionName")
     @Mapping(target = "businessCode", source = "view.businessCode")
     @Mapping(target = "generalId", source = "view.generalId")
     @Mapping(target = "generalName", source = "view.generalName")
@@ -30,9 +31,5 @@ public interface ProcessDetailInformationViewMapper {
     @Mapping(target = "diagramId", source = "view.diagramId")
     @Mapping(target = "objectId", source = "view.objectId")
     @Mapping(target = "generalCode", source = "view.generalCode")
-    ProcessDetailInformationViewDTO toDTO(ProcessDetailInformationView view, Map<String, String> workflowTask);
-
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    ProcessDetailInformationView partialUpdate(ProcessDetailInformationViewDTO processDetailInformationViewDTO,
-                                               @MappingTarget ProcessDetailInformationView processDetailInformationView);
+    ProcessDetailInformationPendingDTO toDTO(ProcessDetailInformationView view, WorkflowTaskSummaryDTO workflowTask);
 }

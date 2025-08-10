@@ -17,4 +17,10 @@ public class ApplicationConst {
     };
 
     public static final String GENERAL_INFORMATION_PREFIX_CODE = "EP";
+
+    public static final String E_PROCESS_ID_VARIABLE_FIELD = "eProcessId";
+
+    public static final String E_PROCESS_SCOPE_VARIABLE_FIELD = "scope";
+
+    public static final String WORKFLOW_DEACTIVATE_NAME = "DEACTIVATE";
 }

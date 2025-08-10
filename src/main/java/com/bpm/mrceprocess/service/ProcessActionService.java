@@ -1,9 +1,6 @@
 package com.bpm.mrceprocess.service;
 
-import com.bpm.mrceprocess.common.dtos.CreateProcessRequestDTO;
-import com.bpm.mrceprocess.common.dtos.ProcessCanceledEventDTO;
-import com.bpm.mrceprocess.common.dtos.UpdateProcessRequestDTO;
-import com.bpm.mrceprocess.common.dtos.UserTaskCreatedEventDTO;
+import com.bpm.mrceprocess.common.dtos.*;
 
 public interface ProcessActionService {
 
@@ -22,6 +19,8 @@ public interface ProcessActionService {
     void workflowCanceled(ProcessCanceledEventDTO eventDTO);
 
     void workflowMoveNextStep(UserTaskCreatedEventDTO eventDTO);
+
+    SubmitDeactivateProcessDTO.Response submitDeactivate(SubmitDeactivateProcessDTO.Request request);
 
     void deactivateProcess(String historyId);
 }

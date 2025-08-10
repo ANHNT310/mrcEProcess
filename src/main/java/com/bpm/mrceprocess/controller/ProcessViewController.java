@@ -3,10 +3,7 @@ package com.bpm.mrceprocess.controller;
 import com.bpm.dtos.BaseResponse;
 import com.bpm.dtos.LazyLoadEventDTO;
 import com.bpm.dtos.PageResponse;
-import com.bpm.mrceprocess.common.dtos.GeneralInformationDTO;
-import com.bpm.mrceprocess.common.dtos.GeneralInformationHistoryDTO;
-import com.bpm.mrceprocess.common.dtos.ProcessDetailDTO;
-import com.bpm.mrceprocess.common.dtos.ProcessDetailInformationViewDTO;
+import com.bpm.mrceprocess.common.dtos.*;
 import com.bpm.mrceprocess.common.enums.ProcessScopeEnum;
 import com.bpm.mrceprocess.service.ProcessViewService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +30,7 @@ public class ProcessViewController {
 
     @PostMapping("/pending")
     @Operation(summary = "Get pending processes", description = "Retrieves a paginated list of processes that are pending action from the current user's workflow tasks.")
-    public BaseResponse<PageResponse<ProcessDetailInformationViewDTO>> getPending(@RequestBody LazyLoadEventDTO eventDTO) {
+    public BaseResponse<PageResponse<ProcessDetailInformationPendingDTO>> getPending(@RequestBody LazyLoadEventDTO eventDTO) {
         return BaseResponse.success(PageResponse.from(processViewService.pending(eventDTO)));
     }
 

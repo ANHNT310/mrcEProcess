@@ -2,6 +2,7 @@ package com.bpm.mrceprocess.controller;
 
 import com.bpm.dtos.BaseResponse;
 import com.bpm.mrceprocess.common.dtos.CreateProcessRequestDTO;
+import com.bpm.mrceprocess.common.dtos.SubmitDeactivateProcessDTO;
 import com.bpm.mrceprocess.common.dtos.UpdateProcessRequestDTO;
 import com.bpm.mrceprocess.service.ProcessActionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -93,6 +94,17 @@ public class ProcessActionController {
     public BaseResponse<Void> deactivateProcess(@Parameter(description = "ID of the process history record to deactivate", required = true) @PathVariable String historyId) {
         processActionService.deactivateProcess(historyId);
         return BaseResponse.success(null);
+    }
+
+    @PostMapping("/submit/deactivate")
+    @Operation(summary = "Submit a process for deactivation", description = "Submits a request to deactivate an active process, initiating a workflow if required.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Process deactivation submitted successfully"),
+            @ApiResponse(responseCode = "404", description = "Process not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid input")
+    })
+    public BaseResponse<SubmitDeactivateProcessDTO.Response> submitDeactivateProcess(@RequestBody SubmitDeactivateProcessDTO.Request request) {
+        return BaseResponse.success(processActionService.submitDeactivate(request));
     }
 
 }

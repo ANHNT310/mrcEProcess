@@ -9,7 +9,7 @@ public interface ProcessViewService {
 
     Page<ProcessDetailInformationViewDTO> byUser(LazyLoadEventDTO eventDTO);
 
-    Page<ProcessDetailInformationViewDTO> pending (LazyLoadEventDTO eventDTO);
+    Page<ProcessDetailInformationPendingDTO> pending (LazyLoadEventDTO eventDTO);
 
     ProcessDetailDTO detail (String processDetailId);
 

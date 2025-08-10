@@ -4,17 +4,11 @@ import com.bpm.dtos.LazyLoadEventDTO;
 import com.bpm.enums.ApplicationMessage;
 import com.bpm.exception.ApplicationException;
 import com.bpm.mrceprocess.common.consts.ApplicationConst;
-import com.bpm.mrceprocess.common.dtos.GeneralInformationDTO;
-import com.bpm.mrceprocess.common.dtos.GeneralInformationHistoryDTO;
-import com.bpm.mrceprocess.common.dtos.ProcessDetailDTO;
-import com.bpm.mrceprocess.common.dtos.ProcessDetailInformationViewDTO;
+import com.bpm.mrceprocess.common.dtos.*;
 import com.bpm.mrceprocess.common.enums.ProcessScopeEnum;
 import com.bpm.mrceprocess.external.WorkflowService;
 import com.bpm.mrceprocess.external.payload.WorkflowTaskSummaryDTO;
-import com.bpm.mrceprocess.mapping.GeneralInformationHistoryMapper;
-import com.bpm.mrceprocess.mapping.GeneralInformationMapper;
-import com.bpm.mrceprocess.mapping.ProcessDetailDTOMapper;
-import com.bpm.mrceprocess.mapping.ProcessDetailInformationViewMapper;
+import com.bpm.mrceprocess.mapping.*;
 import com.bpm.mrceprocess.persistence.entity.GeneralInformation;
 import com.bpm.mrceprocess.persistence.entity.GeneralInformationHistory;
 import com.bpm.mrceprocess.persistence.entity.ProcessDetailInformationView;
@@ -28,6 +22,7 @@ import com.bpm.mrceprocess.service.ProcessViewService;
 import com.bpm.utils.FilterSpecification;
 import com.bpm.utils.PageableHelper;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -52,6 +47,7 @@ public class ProcessViewServiceImpl implements ProcessViewService {
     private final GeneralInformationRepository generalInformationRepository;
     private final ProcessScopeConfigRepository processScopeConfigRepository;
     private final GeneralInformationMapper generalInformationMapper;
+    private final ProcessDetailInformationPendingDTOMapper processDetailInformationPendingDTOMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -72,32 +68,30 @@ public class ProcessViewServiceImpl implements ProcessViewService {
     }
 
     @Override
-    public Page<ProcessDetailInformationViewDTO> pending(LazyLoadEventDTO eventDTO) {
+    public Page<ProcessDetailInformationPendingDTO> pending(LazyLoadEventDTO eventDTO) {
         List<WorkflowTaskSummaryDTO> pending = workflowService.pending(ApplicationConst.WORKFLOW_TENANT);
 
         if (pending.isEmpty()) {
             return Page.empty(PageableHelper.createPageable(eventDTO));
         }
 
-        List<String> businessCodes = pending.stream()
-                .map(WorkflowTaskSummaryDTO::getBusinessKey)
+        List<String> eProcessIds = pending.stream()
+                .map(m -> m.getVariables().getOrDefault("eProcessId", null).toString())
                 .toList();
+        Map<String, ProcessDetailInformationView> informationViews = processDetailInformationViewRepository.findByHistoryIdIn(eProcessIds)
+                .stream().collect(Collectors.toMap(ProcessDetailInformationView::getHistoryId, m -> m));
 
-        Specification<ProcessDetailInformationView> businessCodeSpec = (root, query, criteriaBuilder) ->
-                root.get("businessCode").in(businessCodes);
 
-        Specification<ProcessDetailInformationView> filterSpec = new FilterSpecification<>(eventDTO);
+        List<ProcessDetailInformationPendingDTO> informationPendingDTOS = pending.stream().map(m -> {
+            String eProcessId = m.getVariables().getOrDefault("eProcessId", null).toString();
+            if (StringUtils.isEmpty(eProcessId)) {
+                return new ProcessDetailInformationPendingDTO();
+            }
+            ProcessDetailInformationView view = informationViews.get(eProcessId);
+            return processDetailInformationPendingDTOMapper.toDTO(view, m);
+        }).toList();
 
-        Specification<ProcessDetailInformationView> combinedSpec = businessCodeSpec.and(filterSpec);
-
-        Pageable pageable = PageableHelper.createPageable(eventDTO);
-
-        Page<ProcessDetailInformationView> resultPage = processDetailInformationViewRepository.findAll(combinedSpec, pageable);
-
-        Map<String, String> workflowTaskId = pending.stream()
-                .collect(Collectors.toMap(WorkflowTaskSummaryDTO::getBusinessKey, WorkflowTaskSummaryDTO::getTaskId));
-
-        return resultPage.map(m -> processDetailInformationViewMapper.toDTO(m, workflowTaskId));
+        return PageableHelper.createPageFromList(informationPendingDTOS, eventDTO);
     }
 
     @Override

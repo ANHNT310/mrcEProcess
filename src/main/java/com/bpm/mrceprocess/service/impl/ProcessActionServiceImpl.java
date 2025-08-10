@@ -3,12 +3,9 @@ package com.bpm.mrceprocess.service.impl;
 import com.bpm.enums.ApplicationMessage;
 import com.bpm.exception.ApplicationException;
 import com.bpm.mrceprocess.common.consts.ApplicationConst;
-import com.bpm.mrceprocess.common.dtos.CreateProcessRequestDTO;
-import com.bpm.mrceprocess.common.dtos.ProcessCanceledEventDTO;
-import com.bpm.mrceprocess.common.dtos.UpdateProcessRequestDTO;
-import com.bpm.mrceprocess.common.dtos.UserTaskCreatedEventDTO;
+import com.bpm.mrceprocess.common.dtos.*;
 import com.bpm.mrceprocess.external.WorkflowService;
-import com.bpm.mrceprocess.external.payload.WorkflowStartPayloadDTO;
+import com.bpm.mrceprocess.external.payload.WorkflowStartPayloadResDTO;
 import com.bpm.mrceprocess.mapping.*;
 import com.bpm.mrceprocess.persistence.entity.*;
 import com.bpm.mrceprocess.persistence.repository.CategoryRepository;
@@ -22,12 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -61,12 +53,14 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     public CreateProcessRequestDTO.Response createSubmit(CreateProcessRequestDTO.Request request) {
         GeneralInformationHistory informationHistory = save(request);
 
-        WorkflowStartPayloadDTO.Request startWorkflowReq = new WorkflowStartPayloadDTO.Request(
+        Map<String, Object> createPayload = new HashMap<>();
+        createPayload.put(ApplicationConst.E_PROCESS_ID_VARIABLE_FIELD, informationHistory.getId());
+
+        WorkflowStartPayloadResDTO startRes = workflowService.startWorkflow(
                 informationHistory.getGeneralInformation().getScope().getWorkflowName(),
-                new WorkflowStartPayloadDTO.Request.Variable(informationHistory.getId())
+                createPayload
         );
-        WorkflowStartPayloadDTO.Response start = workflowService.startWorkflow(startWorkflowReq);
-        informationHistory.setBusinessCode(start.businessKey());
+        informationHistory.setBusinessCode(startRes.getBusinessKey());
         informationHistory = historyRepository.save(informationHistory);
         return new CreateProcessRequestDTO.Response(informationHistory.getGeneralInformation().getId(),
                 informationHistory.getId());
@@ -138,13 +132,12 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     public UpdateProcessRequestDTO.Response updateSubmit(UpdateProcessRequestDTO.Request request) {
         GeneralInformationHistory updatedHistory = update(request);
 
-        WorkflowStartPayloadDTO.Request startWorkflowReq = new WorkflowStartPayloadDTO.Request(
-                request.information().scope().name(),
-                new WorkflowStartPayloadDTO.Request.Variable(updatedHistory.getId())
-        );
-        WorkflowStartPayloadDTO.Response start = workflowService.startWorkflow(startWorkflowReq);
+        Map<String, Object> variables = new HashMap<>();
+        variables.put(ApplicationConst.E_PROCESS_ID_VARIABLE_FIELD, updatedHistory.getId());
 
-        updatedHistory.setBusinessCode(start.businessKey());
+        WorkflowStartPayloadResDTO startRes = workflowService.startWorkflow(request.information().scope().name(), variables);
+
+        updatedHistory.setBusinessCode(startRes.getBusinessKey());
         updatedHistory = historyRepository.save(updatedHistory);
 
         return new UpdateProcessRequestDTO.Response(updatedHistory.getGeneralInformation().getId(), updatedHistory.getId());
@@ -158,11 +151,8 @@ public class ProcessActionServiceImpl implements ProcessActionService {
 
 
         GeneralInformation generalInformation = informationHistory.getGeneralInformation();
-        ProcessScopeStatus scopeStatus = generalInformation.getScope().getStatuses().stream()
-                .filter(ProcessScopeStatus::isDefaultEnd).findAny().orElse(null);
-        if (scopeStatus != null) {
-            informationHistory.setStatus(scopeStatus);
-        }
+        generalInformation.getScope().getStatuses().stream()
+                .filter(ProcessScopeStatus::isDefaultEnd).findAny().ifPresent(informationHistory::setStatus);
         generalInformation.setAvailable(informationHistory);
 
         historyRepository.save(informationHistory);
@@ -205,6 +195,24 @@ public class ProcessActionServiceImpl implements ProcessActionService {
                 .findFirst().orElse(null);
         informationHistory.setStatus(processScopeStatus);
         historyRepository.save(informationHistory);
+    }
+
+    @Override
+    public SubmitDeactivateProcessDTO.Response submitDeactivate(SubmitDeactivateProcessDTO.Request request) {
+        GeneralInformation generalInformation = generalInformationRepository.findById(request.generalId())
+                .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
+
+        if (generalInformation.getAvailable() == null) {
+            return null;
+        }
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put(ApplicationConst.E_PROCESS_ID_VARIABLE_FIELD, generalInformation.getAvailable().getId());
+        variables.put(ApplicationConst.E_PROCESS_SCOPE_VARIABLE_FIELD, generalInformation.getScope().getWorkflowName());
+
+        WorkflowStartPayloadResDTO startRes = workflowService.startWorkflow(ApplicationConst.WORKFLOW_DEACTIVATE_NAME, variables);
+
+        return new SubmitDeactivateProcessDTO.Response(generalInformation.getAvailable().getId(), startRes.getBusinessKey());
     }
 
     @Override
