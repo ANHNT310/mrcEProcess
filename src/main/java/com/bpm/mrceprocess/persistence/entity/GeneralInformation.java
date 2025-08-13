@@ -2,8 +2,7 @@ package com.bpm.mrceprocess.persistence.entity;
 
 import com.bpm.mrceprocess.common.enums.GeneralInformationType;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -11,6 +10,9 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "general_information")
 public class GeneralInformation extends AuditorProvider {
 

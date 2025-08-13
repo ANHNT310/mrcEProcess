@@ -1,6 +1,6 @@
 package com.bpm.mrceprocess.mapping;
 
-import com.bpm.mrceprocess.common.dtos.NewProcessRequestDTO;
+import com.bpm.mrceprocess.common.dtos.SaveProcessRequestDTO;
 import com.bpm.mrceprocess.persistence.entity.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -33,34 +33,34 @@ public interface NewProcessRequestDTOMapper {
             @Mapping(target = "status", ignore = true),
             @Mapping(target = "generalInformationHistoryTickets", ignore = true)
     })
-    GeneralInformationHistory fromDTO(NewProcessRequestDTO.Request dto);
+    GeneralInformationHistory fromDTO(SaveProcessRequestDTO.Request dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "generalInformationHistory", ignore = true)
-    @Mapping(target = "duration", source = "effectiveDuration")
-    OriginalDocument fromDTO (NewProcessRequestDTO.Request.Information.OriginalDocument dto);
+    @Mapping(target = "duration", source = "duration")
+    OriginalDocument fromDTO (SaveProcessRequestDTO.Request.Information.OriginalDocument dto);
 
     @Mapping(target = "referenceDocument", source = "referenceDoc")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "generalInformationHistory", ignore = true)
-    DiagramDescription fromDTO(NewProcessRequestDTO.Request.Diagram.Description dto);
+    DiagramDescription fromDTO(SaveProcessRequestDTO.Request.Diagram.Description dto);
 
     @Mapping(target = "vieDefinition", source = "vietnamese")
     @Mapping(target = "enDefinition", source = "english")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "generalInformationHistory", ignore = true)
-    TermAbbreviation fromDTO(NewProcessRequestDTO.Request.TermAbbreviation dto);
+    TermAbbreviation fromDTO(SaveProcessRequestDTO.Request.TermAbbreviation dto);
 
     @Mapping(target = "internalDocument", source = "internalDocuments")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "generalInformationHistory", ignore = true)
-    RelatedDocument fromDTO(NewProcessRequestDTO.Request.RelatedDocument dto);
+    RelatedDocument fromDTO(SaveProcessRequestDTO.Request.RelatedDocument dto);
 
     // Note: The target entity is 'RelatedDocumentTemplate'.
     // MapStruct will map fields with the same name automatically (name, fileId).
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "relatedDocument", ignore = true)
-    RelatedDocumentTemplate fromDTO(NewProcessRequestDTO.Request.RelatedDocument.Template dto);
+    RelatedDocumentTemplate fromDTO(SaveProcessRequestDTO.Request.RelatedDocument.Template dto);
 
     /**
      * Updates an existing GeneralInformationHistory entity from a DTO.
@@ -88,5 +88,5 @@ public interface NewProcessRequestDTOMapper {
             @Mapping(target = "status", ignore = true),
             @Mapping(target = "generalInformationHistoryTickets", ignore = true)
     })
-    void updateFromDTO(@MappingTarget GeneralInformationHistory history, NewProcessRequestDTO.Request dto);
+    void updateFromDTO(@MappingTarget GeneralInformationHistory history, SaveProcessRequestDTO.Request dto);
 }

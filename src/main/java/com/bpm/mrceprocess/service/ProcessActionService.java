@@ -4,7 +4,7 @@ import com.bpm.mrceprocess.common.dtos.*;
 
 public interface ProcessActionService {
 
-    NewProcessRequestDTO.Response create(String historyId, boolean submit, NewProcessRequestDTO.Request request);
+    SaveProcessRequestDTO.Response save(boolean submit, SaveProcessRequestDTO.Request request);
 
     void deleteDraft (String historyId);
 

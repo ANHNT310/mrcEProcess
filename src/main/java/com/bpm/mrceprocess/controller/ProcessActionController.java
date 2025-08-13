@@ -1,10 +1,8 @@
 package com.bpm.mrceprocess.controller;
 
 import com.bpm.dtos.BaseResponse;
-import com.bpm.mrceprocess.common.dtos.CreateProcessRequestDTO;
-import com.bpm.mrceprocess.common.dtos.NewProcessRequestDTO;
+import com.bpm.mrceprocess.common.dtos.SaveProcessRequestDTO;
 import com.bpm.mrceprocess.common.dtos.SubmitDeactivateProcessDTO;
-import com.bpm.mrceprocess.common.dtos.UpdateProcessRequestDTO;
 import com.bpm.mrceprocess.service.ProcessActionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,24 +20,24 @@ public class ProcessActionController {
 
     private final ProcessActionService processActionService;
 
-    @PostMapping("/save/{historyId}")
+    @PostMapping("/save")
     @Operation(summary = "Create a new process as a draft", description = "Saves a new process in a draft state without starting a workflow.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Draft created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input")
     })
-    public BaseResponse<NewProcessRequestDTO.Response> save(@PathVariable String historyId, @RequestBody NewProcessRequestDTO.Request request) {
-        return BaseResponse.success(processActionService.create(historyId, false, request));
+    public BaseResponse<SaveProcessRequestDTO.Response> save(@RequestBody SaveProcessRequestDTO.Request request) {
+        return BaseResponse.success(processActionService.save(false, request));
     }
 
-    @PostMapping("/save/{historyId}/submit")
+    @PostMapping("/save/submit")
     @Operation(summary = "Create a new process as a draft", description = "Saves a new process in a draft state without starting a workflow.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Draft created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input")
     })
-    public BaseResponse<NewProcessRequestDTO.Response> submit(@PathVariable String historyId, @RequestBody NewProcessRequestDTO.Request request) {
-        return BaseResponse.success(processActionService.create(historyId, true, request));
+    public BaseResponse<SaveProcessRequestDTO.Response> submit(@PathVariable String historyId, @RequestBody SaveProcessRequestDTO.Request request) {
+        return BaseResponse.success(processActionService.save(true, request));
     }
 
     @DeleteMapping("/delete/draft/{historyId}")

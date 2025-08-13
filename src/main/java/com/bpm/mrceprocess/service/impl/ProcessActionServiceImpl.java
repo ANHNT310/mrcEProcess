@@ -40,8 +40,37 @@ public class ProcessActionServiceImpl implements ProcessActionService {
 
     @Override
     @Transactional
-    public NewProcessRequestDTO.Response create(String historyId, boolean submit, NewProcessRequestDTO.Request request) {
-        GeneralInformationHistory informationHistory = newProcessRequestDTOMapper.fromDTO(request);
+    public SaveProcessRequestDTO.Response save(boolean submit, SaveProcessRequestDTO.Request request) {
+
+        GeneralInformation generalInformation;
+        if (StringUtils.isEmpty(request.general().code())) {
+
+            int lastValue = generalInformationRepository.countAllByCodeIsNotNull();
+            int nextValue = lastValue + 1;
+            String sequencePart = String.format("%03d", nextValue);
+
+            generalInformation = GeneralInformation.builder()
+                    .code(String.format("%s-%s", ApplicationConst.GENERAL_INFORMATION_PREFIX_CODE, sequencePart))
+                    .type(GeneralInformationType.valueOf(request.general().type()))
+                    .build();
+            generalInformation = generalInformationRepository.save(generalInformation);
+        } else {
+            generalInformation = generalInformationRepository.findByCode(request.general().code())
+                    .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND, "General information not found"));
+        }
+
+        GeneralInformationHistory informationHistory;
+        if (StringUtils.isEmpty(request.information().id())) {
+            informationHistory = newProcessRequestDTOMapper.fromDTO(request);
+        } else {
+            informationHistory = historyRepository.findById(request.information().id())
+                    .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND,"History not found"));
+            newProcessRequestDTOMapper.updateFromDTO(informationHistory, request);
+        }
+
+        int countByGeneral = historyRepository.countByGeneralInformation(generalInformation);
+        informationHistory.setVersion(countByGeneral + 1);
+        informationHistory.setGeneralInformation(generalInformation);
 
         if (submit) {
             Map<String, Object> createPayload = new HashMap<>();
@@ -60,11 +89,12 @@ public class ProcessActionServiceImpl implements ProcessActionService {
             ticket.setBusinessCode(started.getBusinessKey());
 
             informationHistory.addGeneralInformationHistoryWorkflow(ticket);
+            informationHistory.setDraft(false);
         }
 
         informationHistory = historyRepository.save(informationHistory);
 
-        return new NewProcessRequestDTO.Response(informationHistory.getGeneralInformation().getId(), informationHistory.getId());
+        return new SaveProcessRequestDTO.Response(generalInformation.getCode(), informationHistory.getId());
     }
 
     @Override
@@ -97,27 +127,27 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     @Override
     @Transactional
     public void workflowCanceled(ProcessCanceledEventDTO eventDTO) {
-        GeneralInformationHistory informationHistory = historyRepository.findByBusinessCode(eventDTO.getBusinessKey())
-                .orElse(null);
-
-        if (informationHistory == null) {
-            log.error("Workflow cancel informationHistory is null");
-            return;
-        }
-
-        historyRepository.save(informationHistory);
+//        GeneralInformationHistory informationHistory = historyRepository.findByBusinessCode(eventDTO.getBusinessKey())
+//                .orElse(null);
+//
+//        if (informationHistory == null) {
+//            log.error("Workflow cancel informationHistory is null");
+//            return;
+//        }
+//
+//        historyRepository.save(informationHistory);
     }
 
     @Override
     @Transactional
     public void workflowMoveNextStep(UserTaskCreatedEventDTO eventDTO) {
-        GeneralInformationHistory informationHistory = historyRepository.findByBusinessCode(eventDTO.getBusinessKey())
-                .orElse(null);
-        if (informationHistory == null) {
-            log.error("Workflow next step informationHistory is null");
-            return;
-        }
-        historyRepository.save(informationHistory);
+//        GeneralInformationHistory informationHistory = historyRepository.findByBusinessCode(eventDTO.getBusinessKey())
+//                .orElse(null);
+//        if (informationHistory == null) {
+//            log.error("Workflow next step informationHistory is null");
+//            return;
+//        }
+//        historyRepository.save(informationHistory);
     }
 
     @Override

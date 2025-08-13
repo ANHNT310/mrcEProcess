@@ -33,7 +33,7 @@ public class OriginalDocument extends AuditorProvider {
 
     private String approvalAuthority;
 
-    private boolean isEffectivenessSame = false;
+    private boolean effectivenessSame = false;
 
     @Enumerated(EnumType.STRING)
     private EffectiveType effectiveType;

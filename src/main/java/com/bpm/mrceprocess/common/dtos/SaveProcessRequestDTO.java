@@ -6,14 +6,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
-public class NewProcessRequestDTO {
+public class SaveProcessRequestDTO {
 
-    public record Request(CreateProcessRequestDTO.Request.Information information,
-                          CreateProcessRequestDTO.Request.Diagram diagram,
-                          List<CreateProcessRequestDTO.Request.TermAbbreviation> termAbbreviations,
-                          CreateProcessRequestDTO.Request.RelatedDocument relatedDocument) {
+    public record Request(General general, Information information,
+                          Diagram diagram,
+                          List<TermAbbreviation> termAbbreviations,
+                          RelatedDocument relatedDocument) {
 
-        public record Information(String code,
+        public record General (String code, String type) {}
+
+        public record Information(String id,
+                                  String code,
                                   String shortDescription,
                                   String name,
                                   String objectId,
@@ -33,7 +36,7 @@ public class NewProcessRequestDTO {
                                            String approvalAuthority,
                                            boolean effectivenessSame,
                                            EffectiveType effectiveType,
-                                           Integer effectiveDuration,
+                                           Integer duration,
                                            LocalDateTime effectiveDate,
                                            LocalDateTime endDate,
                                            String shareFor,

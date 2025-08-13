@@ -52,6 +52,8 @@ public class GeneralInformationHistory extends AuditorProvider {
 
     private String status;
 
+    private boolean draft = true;
+
     @OneToMany(
             mappedBy = "generalInformationHistory",
             cascade = CascadeType.ALL,

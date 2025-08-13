@@ -28,7 +28,6 @@ public interface GeneralInformationHistoryMapper {
     @Mapping(target = "code", source = "entity.generalInformation.code")
     @Mapping(target = "generalCreatedBy", source = "entity.generalInformation.createdBy")
     @Mapping(target = "generalCreatedDate", source = "entity.generalInformation.createdAt")
-    @Mapping(target = "stage", expression = "java(taskSummaryDTOS.stream().filter(t -> t.getBusinessKey().equals(entity.getBusinessCode())).map(WorkflowTaskSummaryDTO::getTaskName).findFirst().orElse(null))")
     GeneralInformationViewDTO toDTO (GeneralInformationHistory entity, List<WorkflowTaskSummaryDTO> taskSummaryDTOS);
 
     @Mapping(target = "historyId", source = "id")

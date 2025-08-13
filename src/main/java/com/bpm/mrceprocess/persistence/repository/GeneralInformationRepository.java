@@ -16,7 +16,9 @@ import java.util.Optional;
 
 public interface GeneralInformationRepository extends JpaRepository<GeneralInformation, String>, JpaSpecificationExecutor<GeneralInformation> {
 
-    int countByCodeIsNotNull();
+    int countAllByCodeIsNotNull();
 
     Optional<GeneralInformation> findByAvailable(GeneralInformationHistory available);
+
+    Optional<GeneralInformation> findByCode(String generalCode);
 }

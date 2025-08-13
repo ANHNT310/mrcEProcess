@@ -15,9 +15,5 @@ import java.util.Optional;
 public interface GeneralInformationHistoryRepository extends JpaRepository<GeneralInformationHistory, String>,
         JpaSpecificationExecutor<GeneralInformationHistory> {
 
-    Page<GeneralInformationHistory> findByBusinessCodeIn(List<String> businessCodes, Pageable pageable);
-
-    Optional<GeneralInformationHistory> findByBusinessCode(String businessCode);
-
     int countByGeneralInformation(GeneralInformation generalInformation);
 }
