@@ -2,11 +2,7 @@ package com.bpm.mrceprocess.mapping;
 
 import com.bpm.mrceprocess.common.dtos.SaveProcessRequestDTO;
 import com.bpm.mrceprocess.persistence.entity.*;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.Mappings;
+import org.mapstruct.*;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {MappingHelper.class})
 public interface NewProcessRequestDTOMapper {
@@ -31,7 +27,8 @@ public interface NewProcessRequestDTOMapper {
             @Mapping(target = "version", ignore = true),
             @Mapping(target = "deactivate", ignore = true),
             @Mapping(target = "status", ignore = true),
-            @Mapping(target = "generalInformationHistoryTickets", ignore = true)
+            @Mapping(target = "generalInformationHistoryTickets", ignore = true),
+            @Mapping(target = "draft", ignore = true)
     })
     GeneralInformationHistory fromDTO(SaveProcessRequestDTO.Request dto);
 
@@ -86,7 +83,9 @@ public interface NewProcessRequestDTOMapper {
             @Mapping(target = "version", ignore = true),
             @Mapping(target = "deactivate", ignore = true),
             @Mapping(target = "status", ignore = true),
-            @Mapping(target = "generalInformationHistoryTickets", ignore = true)
+            @Mapping(target = "generalInformationHistoryTickets", ignore = true),
+            @Mapping(target = "draft", ignore = true)
     })
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateFromDTO(@MappingTarget GeneralInformationHistory history, SaveProcessRequestDTO.Request dto);
 }

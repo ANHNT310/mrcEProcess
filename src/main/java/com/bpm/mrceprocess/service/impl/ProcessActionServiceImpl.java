@@ -102,6 +102,10 @@ public class ProcessActionServiceImpl implements ProcessActionService {
         GeneralInformationHistory history = historyRepository.findById(historyId)
                 .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
 
+        if (!history.isDraft()) {
+            throw new ApplicationException(ApplicationMessage.BAD_REQUEST, "This is not a draft process");
+        }
+
         GeneralInformation generalInformation = history.getGeneralInformation();
         if (generalInformation.getHistories().size() > 1) {
             historyRepository.delete(history);
