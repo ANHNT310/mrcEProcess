@@ -11,17 +11,14 @@ import java.util.List;
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface GeneralInformationMapper {
 
-    @Mapping(target = "scope", ignore = true)
     GeneralInformation toEntity(GeneralInformationDTO generalInformationDto);
 
     @Mapping(target = "availableId", source = "available.id")
-    @Mapping(target = "scope", source = "scope.name")
     GeneralInformationDTO toDto(GeneralInformation generalInformation);
 
     List<GeneralInformationDTO> toDto (Collection<GeneralInformation> generalInfos);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "scope", ignore = true)
     GeneralInformation partialUpdate(GeneralInformationDTO generalInformationDto, @MappingTarget GeneralInformation generalInformation);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

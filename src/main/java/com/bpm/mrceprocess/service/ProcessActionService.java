@@ -4,15 +4,9 @@ import com.bpm.mrceprocess.common.dtos.*;
 
 public interface ProcessActionService {
 
-    CreateProcessRequestDTO.Response createDraft(CreateProcessRequestDTO.Request request);
-
-    CreateProcessRequestDTO.Response createSubmit(CreateProcessRequestDTO.Request request);
+    NewProcessRequestDTO.Response create(String historyId, boolean submit, NewProcessRequestDTO.Request request);
 
     void deleteDraft (String historyId);
-
-    UpdateProcessRequestDTO.Response updateDraft(UpdateProcessRequestDTO.Request request);
-
-    UpdateProcessRequestDTO.Response updateSubmit(UpdateProcessRequestDTO.Request request);
 
     void publicProcess (String historyId);
 

@@ -59,7 +59,7 @@ public class MasterDataServiceImpl implements MasterDataService {
     @Override
     public List<SelectItem> processes() {
         return generalInformationRepository.findAll().stream()
-                .map(m -> new SelectItem(m.getId(), m.getCode() + " - " + m.getName()))
+                .map(m -> new SelectItem(m.getId(), m.getCode() + " - " + m.getCode()))
                 .toList();
     }
 }

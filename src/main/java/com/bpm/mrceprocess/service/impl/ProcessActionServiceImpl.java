@@ -4,14 +4,12 @@ import com.bpm.enums.ApplicationMessage;
 import com.bpm.exception.ApplicationException;
 import com.bpm.mrceprocess.common.consts.ApplicationConst;
 import com.bpm.mrceprocess.common.dtos.*;
+import com.bpm.mrceprocess.common.enums.GeneralInformationType;
 import com.bpm.mrceprocess.external.WorkflowService;
 import com.bpm.mrceprocess.external.payload.WorkflowStartPayloadResDTO;
 import com.bpm.mrceprocess.mapping.*;
 import com.bpm.mrceprocess.persistence.entity.*;
-import com.bpm.mrceprocess.persistence.repository.CategoryRepository;
-import com.bpm.mrceprocess.persistence.repository.GeneralInformationHistoryRepository;
-import com.bpm.mrceprocess.persistence.repository.GeneralInformationRepository;
-import com.bpm.mrceprocess.persistence.repository.ProcessScopeConfigRepository;
+import com.bpm.mrceprocess.persistence.repository.*;
 import com.bpm.mrceprocess.service.ProcessActionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,38 +30,41 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     private final GeneralInformationRepository generalInformationRepository;
     private final CategoryRepository categoryRepository;
     private final WorkflowService workflowService;
-    private final CreateProcessRequestDTOMapper createProcessRequestDTOMapper;
-    private final UpdateProcessRequestDTOMapper updateProcessRequestDTOMapper;
     private final RelatedDocumentMapper relatedDocumentMapper;
     private final OriginalDocumentMapper originalDocumentMapper;
     private final DiagramDescriptionMapper diagramDescriptionMapper;
     private final TermAbbreviationMapper termAbbreviationMapper;
     private final ProcessScopeConfigRepository processScopeConfigRepository;
+    private final GeneralInformationWorkflowRepository generalInformationWorkflowRepository;
+    private final NewProcessRequestDTOMapper newProcessRequestDTOMapper;
 
     @Override
     @Transactional
-    public CreateProcessRequestDTO.Response createDraft(CreateProcessRequestDTO.Request request) {
-        GeneralInformationHistory informationHistory = save(request);
-        return new CreateProcessRequestDTO.Response(informationHistory.getGeneralInformation().getId(),
-                informationHistory.getId());
-    }
+    public NewProcessRequestDTO.Response create(String historyId, boolean submit, NewProcessRequestDTO.Request request) {
+        GeneralInformationHistory informationHistory = newProcessRequestDTOMapper.fromDTO(request);
 
-    @Override
-    @Transactional
-    public CreateProcessRequestDTO.Response createSubmit(CreateProcessRequestDTO.Request request) {
-        GeneralInformationHistory informationHistory = save(request);
+        if (submit) {
+            Map<String, Object> createPayload = new HashMap<>();
+            createPayload.put(ApplicationConst.E_PROCESS_ID_VARIABLE_FIELD, informationHistory.getId());
 
-        Map<String, Object> createPayload = new HashMap<>();
-        createPayload.put(ApplicationConst.E_PROCESS_ID_VARIABLE_FIELD, informationHistory.getId());
+            GeneralInformationType informationType = informationHistory.getGeneralInformation().getType();
 
-        WorkflowStartPayloadResDTO startRes = workflowService.startWorkflow(
-                informationHistory.getGeneralInformation().getScope().getWorkflowName(),
-                createPayload
-        );
-        informationHistory.setBusinessCode(startRes.getBusinessKey());
+            GeneralInformationWorkflow generalInformationWorkflow = generalInformationWorkflowRepository.findByType(informationType)
+                    .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND, "Workflow not found"));
+
+            WorkflowStartPayloadResDTO started = workflowService.startWorkflow(generalInformationWorkflow.getWorkflowName(), createPayload);
+
+            GeneralInformationHistoryTicket ticket = new GeneralInformationHistoryTicket();
+            ticket.setInformationHistory(informationHistory);
+            ticket.setInformationWorkflow(generalInformationWorkflow);
+            ticket.setBusinessCode(started.getBusinessKey());
+
+            informationHistory.addGeneralInformationHistoryWorkflow(ticket);
+        }
+
         informationHistory = historyRepository.save(informationHistory);
-        return new CreateProcessRequestDTO.Response(informationHistory.getGeneralInformation().getId(),
-                informationHistory.getId());
+
+        return new NewProcessRequestDTO.Response(informationHistory.getGeneralInformation().getId(), informationHistory.getId());
     }
 
     @Override
@@ -79,70 +80,6 @@ public class ProcessActionServiceImpl implements ProcessActionService {
         }
     }
 
-    @Transactional
-    public GeneralInformationHistory save (CreateProcessRequestDTO.Request request) {
-
-        GeneralInformationHistory informationHistory = createProcessRequestDTOMapper.toGeneralInformationHistory(request);
-
-        Category category = categoryRepository.findById(request.information().category())
-                .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
-        informationHistory.setCategory(category);
-
-        ProcessScopeConfig scopeConfig = processScopeConfigRepository.findById(request.information().scope())
-                .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
-
-        scopeConfig.getStatuses().stream().filter(ProcessScopeStatus::isDefaultBegin).findFirst()
-                .ifPresent(informationHistory::setStatus);
-
-        GeneralInformation generalInformation;
-        int historyVersion = 1;
-        if (StringUtils.isEmpty(request.information().id())) {
-            int existedAvailableCode = generalInformationRepository.countByCodeIsNotNull();
-            int nextValue = existedAvailableCode + 1;
-            String sequencePart = String.format("%03d", nextValue);
-
-            generalInformation = createProcessRequestDTOMapper.toGeneralInformation(request);
-            generalInformation.setCode(String.format("%s-%s", ApplicationConst.GENERAL_INFORMATION_PREFIX_CODE, sequencePart));
-
-            generalInformation = generalInformationRepository.save(generalInformation);
-        } else {
-            generalInformation = generalInformationRepository.findById(request.information().id())
-                    .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
-
-            int existHistory = historyRepository.countByGeneralInformation(generalInformation);
-            historyVersion = existHistory + 1;
-        }
-
-        informationHistory.setGeneralInformation(generalInformation);
-        informationHistory.setVersion(historyVersion);
-        informationHistory.setCode(String.format("%s-%s", generalInformation.getCode(), String.format("%05d", historyVersion)));
-
-        return historyRepository.save(informationHistory);
-    }
-
-    @Override
-    @Transactional
-    public UpdateProcessRequestDTO.Response updateDraft(UpdateProcessRequestDTO.Request request) {
-        GeneralInformationHistory updatedHistory = update(request);
-        return new UpdateProcessRequestDTO.Response(updatedHistory.getGeneralInformation().getId(), updatedHistory.getId());
-    }
-
-    @Override
-    @Transactional
-    public UpdateProcessRequestDTO.Response updateSubmit(UpdateProcessRequestDTO.Request request) {
-        GeneralInformationHistory updatedHistory = update(request);
-
-        Map<String, Object> variables = new HashMap<>();
-        variables.put(ApplicationConst.E_PROCESS_ID_VARIABLE_FIELD, updatedHistory.getId());
-
-        WorkflowStartPayloadResDTO startRes = workflowService.startWorkflow(request.information().scope().name(), variables);
-
-        updatedHistory.setBusinessCode(startRes.getBusinessKey());
-        updatedHistory = historyRepository.save(updatedHistory);
-
-        return new UpdateProcessRequestDTO.Response(updatedHistory.getGeneralInformation().getId(), updatedHistory.getId());
-    }
-
     @Override
     @Transactional
     public void publicProcess(String historyId) {
@@ -151,8 +88,6 @@ public class ProcessActionServiceImpl implements ProcessActionService {
 
 
         GeneralInformation generalInformation = informationHistory.getGeneralInformation();
-        generalInformation.getScope().getStatuses().stream()
-                .filter(ProcessScopeStatus::isDefaultEnd).findAny().ifPresent(informationHistory::setStatus);
         generalInformation.setAvailable(informationHistory);
 
         historyRepository.save(informationHistory);
@@ -182,18 +117,6 @@ public class ProcessActionServiceImpl implements ProcessActionService {
             log.error("Workflow next step informationHistory is null");
             return;
         }
-
-        ProcessScopeConfig processScopeConfig = informationHistory.getGeneralInformation().getScope();
-        if (processScopeConfig == null) {
-            log.error("Workflow next step processScopeConfig is null");
-            return;
-        }
-
-        //Update status
-        ProcessScopeStatus processScopeStatus = processScopeConfig.getStatuses().stream()
-                .filter(f -> f.getTaskName().equals(eventDTO.getTaskName()))
-                .findFirst().orElse(null);
-        informationHistory.setStatus(processScopeStatus);
         historyRepository.save(informationHistory);
     }
 
@@ -208,7 +131,6 @@ public class ProcessActionServiceImpl implements ProcessActionService {
 
         Map<String, Object> variables = new HashMap<>();
         variables.put(ApplicationConst.E_PROCESS_ID_VARIABLE_FIELD, generalInformation.getAvailable().getId());
-        variables.put(ApplicationConst.E_PROCESS_SCOPE_VARIABLE_FIELD, generalInformation.getScope().getWorkflowName());
 
         WorkflowStartPayloadResDTO startRes = workflowService.startWorkflow(ApplicationConst.WORKFLOW_DEACTIVATE_NAME, variables);
 
@@ -228,53 +150,6 @@ public class ProcessActionServiceImpl implements ProcessActionService {
             generalInformation.setAvailable(null);
             generalInformationRepository.save(generalInformation);
         });
-    }
-
-    @Transactional
-    protected GeneralInformationHistory update(UpdateProcessRequestDTO.Request request) {
-        // 1. Validate input
-        Objects.requireNonNull(request, "Request payload cannot be null.");
-        if (StringUtils.isBlank(request.information().historyId())) {
-            throw new ApplicationException(ApplicationMessage.BAD_REQUEST, "History ID is required for an update.");
-        }
-
-        // 2. Fetch the entity to be updated
-        GeneralInformationHistory history = historyRepository.findById(request.information().historyId())
-                .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND, "Process history not found."));
-
-        // 3. Use the mapper to update simple, direct fields from the payload
-        updateProcessRequestDTOMapper.partialUpdate(request, history);
-
-        // 4. Manually handle complex relationships and collections
-        // Update General Information (parent)
-        if (history.getGeneralInformation() != null && history.getGeneralInformation().getAvailable() == null) {
-            updateProcessRequestDTOMapper.partialUpdate(request, history.getGeneralInformation());
-        }
-
-        // Update Category
-        if (StringUtils.isNotBlank(request.information().category())) {
-            Category category = categoryRepository.findById(request.information().category())
-                    .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND, "Category not found."));
-            history.setCategory(category);
-        } else {
-            history.setCategory(null);
-        }
-
-        synchronizeOriginalDocuments(history, request.information().originalDocuments());
-        synchronizeDiagramDescriptions(history, request.diagram().descriptions());
-        synchronizeTermAbbreviations(history, request.termAbbreviations());
-
-        if (request.relatedDocument() != null) {
-            RelatedDocument relatedDocument = relatedDocumentMapper.toEntity(request.relatedDocument());
-            history.setRelatedDocument(relatedDocument);
-            if (relatedDocument != null) {
-                relatedDocument.setGeneralInformationHistory(history);
-            }
-        } else {
-            history.setRelatedDocument(null);
-        }
-
-        return historyRepository.saveAndFlush(history);
     }
 
     private void synchronizeOriginalDocuments(GeneralInformationHistory history,

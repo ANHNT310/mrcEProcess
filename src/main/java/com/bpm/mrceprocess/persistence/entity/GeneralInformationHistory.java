@@ -1,15 +1,12 @@
 package com.bpm.mrceprocess.persistence.entity;
 
 import com.bpm.mrceprocess.common.enums.EffectiveType;
-import com.bpm.mrceprocess.common.enums.ProcessInformationHistStage;
-import com.bpm.mrceprocess.common.enums.ProcessStatusSeverityEnum;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 @Getter
@@ -25,6 +22,12 @@ public class GeneralInformationHistory extends AuditorProvider {
     @ManyToOne
     @JoinColumn(name = "general_information_id", referencedColumnName = "id")
     private GeneralInformation generalInformation;
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "short_description")
+    private String shortDescription;
 
     @ManyToOne
     @JoinColumn(name = "process_category_id", referencedColumnName = "id")
@@ -45,15 +48,9 @@ public class GeneralInformationHistory extends AuditorProvider {
 
     private String objectId;
 
-    private String businessCode;
-
-    private String code;
-
     private boolean deactivate = false;
 
-    @ManyToOne()
-    @JoinColumn(name = "status_id", referencedColumnName = "id")
-    private ProcessScopeStatus status;
+    private String status;
 
     @OneToMany(
             mappedBy = "generalInformationHistory",
@@ -61,12 +58,10 @@ public class GeneralInformationHistory extends AuditorProvider {
             orphanRemoval = true
     )
     private Set<OriginalDocument> originalDocuments = new HashSet<>();
-
     public void addOriginalDocument(OriginalDocument document) {
         originalDocuments.add(document);
         document.setGeneralInformationHistory(this);
     }
-
     public void removeOriginalDocument(OriginalDocument document) {
         originalDocuments.remove(document);
         document.setGeneralInformationHistory(null);
@@ -78,12 +73,10 @@ public class GeneralInformationHistory extends AuditorProvider {
             orphanRemoval = true
     )
     private Set<DiagramDescription> diagramDescriptions = new HashSet<>();
-
     public void addDiagramDescription(DiagramDescription description) {
         diagramDescriptions.add(description);
         description.setGeneralInformationHistory(this);
     }
-
     public void  removeDiagramDescription(DiagramDescription description) {
         diagramDescriptions.remove(description);
         description.setGeneralInformationHistory(null);
@@ -95,12 +88,10 @@ public class GeneralInformationHistory extends AuditorProvider {
             orphanRemoval = true
     )
     private Set<TermAbbreviation> termAbbreviations = new HashSet<>();
-
     public void addTermAbbreviation(TermAbbreviation termAbbreviation) {
         termAbbreviations.add(termAbbreviation);
         termAbbreviation.setGeneralInformationHistory(this);
     }
-
     public void removeTermAbbreviation(TermAbbreviation termAbbreviation) {
         termAbbreviations.remove(termAbbreviation);
         termAbbreviation.setGeneralInformationHistory(null);
@@ -112,4 +103,19 @@ public class GeneralInformationHistory extends AuditorProvider {
             orphanRemoval = true
     )
     private RelatedDocument relatedDocument;
+
+    @OneToMany(
+            mappedBy = "informationHistory",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<GeneralInformationHistoryTicket> generalInformationHistoryTickets = new HashSet<>();
+    public void addGeneralInformationHistoryWorkflow(GeneralInformationHistoryTicket workflow) {
+        generalInformationHistoryTickets.add(workflow);
+        workflow.setInformationHistory(this);
+    }
+    public void removeGeneralInformationHistoryWorkflow(GeneralInformationHistoryTicket workflow) {
+        generalInformationHistoryTickets.remove(workflow);
+        workflow.setInformationHistory(null);
+    }
 }

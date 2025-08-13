@@ -1,5 +1,6 @@
 package com.bpm.mrceprocess.persistence.entity;
 
+import com.bpm.mrceprocess.common.enums.GeneralInformationType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,13 +20,8 @@ public class GeneralInformation extends AuditorProvider {
 
     private String code;
 
-    private String name;
-
-    private String shortDescription;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "scope_id", referencedColumnName = "id")
-    private ProcessScopeConfig scope;
+    @Enumerated(EnumType.STRING)
+    private GeneralInformationType type;
 
     @OneToMany(mappedBy = "generalInformation", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<GeneralInformationHistory> histories = new HashSet<>();
@@ -33,12 +29,10 @@ public class GeneralInformation extends AuditorProvider {
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "available_id", referencedColumnName = "id")
     private GeneralInformationHistory available;
-
     public void addHistory(GeneralInformationHistory history) {
         histories.add(history);
         history.setGeneralInformation(this);
     }
-
     public void removeHistory(GeneralInformationHistory history) {
         histories.remove(history);
         history.setGeneralInformation(null);

@@ -2,6 +2,7 @@ package com.bpm.mrceprocess.controller;
 
 import com.bpm.dtos.BaseResponse;
 import com.bpm.mrceprocess.common.dtos.CreateProcessRequestDTO;
+import com.bpm.mrceprocess.common.dtos.NewProcessRequestDTO;
 import com.bpm.mrceprocess.common.dtos.SubmitDeactivateProcessDTO;
 import com.bpm.mrceprocess.common.dtos.UpdateProcessRequestDTO;
 import com.bpm.mrceprocess.service.ProcessActionService;
@@ -21,46 +22,24 @@ public class ProcessActionController {
 
     private final ProcessActionService processActionService;
 
-    @PostMapping("/create/draft")
+    @PostMapping("/save/{historyId}")
     @Operation(summary = "Create a new process as a draft", description = "Saves a new process in a draft state without starting a workflow.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Draft created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input")
     })
-    public BaseResponse<CreateProcessRequestDTO.Response> createDraft(@RequestBody CreateProcessRequestDTO.Request request) {
-        return BaseResponse.success(processActionService.createDraft(request));
+    public BaseResponse<NewProcessRequestDTO.Response> save(@PathVariable String historyId, @RequestBody NewProcessRequestDTO.Request request) {
+        return BaseResponse.success(processActionService.create(historyId, false, request));
     }
 
-    @PostMapping("/create/submit")
-    @Operation(summary = "Create and submit a new process", description = "Saves a new process and immediately submits it, starting a workflow.")
+    @PostMapping("/save/{historyId}/submit")
+    @Operation(summary = "Create a new process as a draft", description = "Saves a new process in a draft state without starting a workflow.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Process created and submitted successfully"),
+            @ApiResponse(responseCode = "200", description = "Draft created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input")
     })
-    public BaseResponse<CreateProcessRequestDTO.Response> createSubmit(@RequestBody CreateProcessRequestDTO.Request request) {
-        return BaseResponse.success(processActionService.createSubmit(request));
-    }
-
-    @PutMapping("/update/draft")
-    @Operation(summary = "Update an existing process as a draft", description = "Saves updates to an existing process in a draft state.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Draft updated successfully"),
-            @ApiResponse(responseCode = "404", description = "Process not found"),
-            @ApiResponse(responseCode = "400", description = "Invalid input")
-    })
-    public BaseResponse<UpdateProcessRequestDTO.Response> updateDraft(@RequestBody UpdateProcessRequestDTO.Request request) {
-        return BaseResponse.success(processActionService.updateDraft(request));
-    }
-
-    @PutMapping("/update/submit")
-    @Operation(summary = "Update and submit an existing process", description = "Saves updates to an existing process and immediately submits it, starting a workflow.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Process updated and submitted successfully"),
-            @ApiResponse(responseCode = "404", description = "Process not found"),
-            @ApiResponse(responseCode = "400", description = "Invalid input")
-    })
-    public BaseResponse<UpdateProcessRequestDTO.Response> updateSubmit(@RequestBody UpdateProcessRequestDTO.Request request) {
-        return BaseResponse.success(processActionService.updateSubmit(request));
+    public BaseResponse<NewProcessRequestDTO.Response> submit(@PathVariable String historyId, @RequestBody NewProcessRequestDTO.Request request) {
+        return BaseResponse.success(processActionService.create(historyId, true, request));
     }
 
     @DeleteMapping("/delete/draft/{historyId}")
