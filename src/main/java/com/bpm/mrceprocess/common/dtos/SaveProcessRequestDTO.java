@@ -42,8 +42,6 @@ public class SaveProcessRequestDTO {
                 String name,
                 @Schema(description = "ID of the object this process applies to.", example = "OBJ-HR")
                 String objectId,
-                @Schema(description = "The scope of the process (ID of a ProcessScopeConfig).", example = "SCOPE-GLOBAL")
-                String scope,
                 @Schema(description = "The category of the process (ID of a Category).", example = "CAT-HR")
                 String category,
                 @Schema(description = "The rule for when the process becomes effective.")

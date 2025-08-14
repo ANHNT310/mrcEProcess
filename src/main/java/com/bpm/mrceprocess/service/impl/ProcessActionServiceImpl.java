@@ -29,13 +29,10 @@ public class ProcessActionServiceImpl implements ProcessActionService {
 
     private final GeneralInformationHistoryRepository historyRepository;
     private final GeneralInformationRepository generalInformationRepository;
-    private final CategoryRepository categoryRepository;
     private final WorkflowService workflowService;
-    private final RelatedDocumentMapper relatedDocumentMapper;
     private final OriginalDocumentMapper originalDocumentMapper;
     private final DiagramDescriptionMapper diagramDescriptionMapper;
     private final TermAbbreviationMapper termAbbreviationMapper;
-    private final ProcessScopeConfigRepository processScopeConfigRepository;
     private final GeneralInformationWorkflowRepository generalInformationWorkflowRepository;
     private final SaveProcessRequestDTOMapper saveProcessRequestDTOMapper;
 
