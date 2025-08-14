@@ -5,6 +5,7 @@ import com.bpm.exception.ApplicationException;
 import com.bpm.mrceprocess.common.consts.ApplicationConst;
 import com.bpm.mrceprocess.common.dtos.*;
 import com.bpm.mrceprocess.common.enums.GeneralInformationType;
+import com.bpm.mrceprocess.common.enums.ProcessActionSaveType;
 import com.bpm.mrceprocess.external.WorkflowService;
 import com.bpm.mrceprocess.external.payload.WorkflowStartPayloadResDTO;
 import com.bpm.mrceprocess.mapping.*;
@@ -36,11 +37,11 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     private final TermAbbreviationMapper termAbbreviationMapper;
     private final ProcessScopeConfigRepository processScopeConfigRepository;
     private final GeneralInformationWorkflowRepository generalInformationWorkflowRepository;
-    private final NewProcessRequestDTOMapper newProcessRequestDTOMapper;
+    private final SaveProcessRequestDTOMapper saveProcessRequestDTOMapper;
 
     @Override
     @Transactional
-    public SaveProcessRequestDTO.Response save(boolean submit, SaveProcessRequestDTO.Request request) {
+    public SaveProcessRequestDTO.Response save(ProcessActionSaveType type, SaveProcessRequestDTO.Request request) {
 
         GeneralInformation generalInformation;
         if (StringUtils.isEmpty(request.general().code())) {
@@ -61,18 +62,18 @@ public class ProcessActionServiceImpl implements ProcessActionService {
 
         GeneralInformationHistory informationHistory;
         if (StringUtils.isEmpty(request.information().id())) {
-            informationHistory = newProcessRequestDTOMapper.fromDTO(request);
+            informationHistory = saveProcessRequestDTOMapper.fromDTO(request);
         } else {
             informationHistory = historyRepository.findById(request.information().id())
                     .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND,"History not found"));
-            newProcessRequestDTOMapper.updateFromDTO(informationHistory, request);
+            saveProcessRequestDTOMapper.updateFromDTO(informationHistory, request);
         }
 
         int countByGeneral = historyRepository.countByGeneralInformation(generalInformation);
         informationHistory.setVersion(countByGeneral + 1);
         informationHistory.setGeneralInformation(generalInformation);
 
-        if (submit) {
+        if (ProcessActionSaveType.submit.equals(type)) {
             Map<String, Object> createPayload = new HashMap<>();
             createPayload.put(ApplicationConst.E_PROCESS_ID_VARIABLE_FIELD, informationHistory.getId());
 

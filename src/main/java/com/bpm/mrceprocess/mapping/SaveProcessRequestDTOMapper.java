@@ -5,7 +5,7 @@ import com.bpm.mrceprocess.persistence.entity.*;
 import org.mapstruct.*;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {MappingHelper.class})
-public interface NewProcessRequestDTOMapper {
+public interface SaveProcessRequestDTOMapper {
 
     @Mappings({
             @Mapping(target = "name", source = "information.name"),

@@ -1,10 +1,11 @@
 package com.bpm.mrceprocess.service;
 
 import com.bpm.mrceprocess.common.dtos.*;
+import com.bpm.mrceprocess.common.enums.ProcessActionSaveType;
 
 public interface ProcessActionService {
 
-    SaveProcessRequestDTO.Response save(boolean submit, SaveProcessRequestDTO.Request request);
+    SaveProcessRequestDTO.Response save(ProcessActionSaveType type, SaveProcessRequestDTO.Request request);
 
     void deleteDraft (String historyId);
 
