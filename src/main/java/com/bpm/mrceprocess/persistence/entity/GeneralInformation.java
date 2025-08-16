@@ -1,6 +1,7 @@
 package com.bpm.mrceprocess.persistence.entity;
 
 import com.bpm.mrceprocess.common.enums.GeneralInformationType;
+import com.bpm.mrceprocess.common.enums.ProcessScopeEnum;
 import jakarta.persistence.*;
 import lombok.*;
 

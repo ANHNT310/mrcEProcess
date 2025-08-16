@@ -25,9 +25,7 @@ public class SaveProcessRequestDTO {
         @Schema(description = "General information about the process type.")
         public record General(
                 @Schema(description = "The unique code for the general process.", example = "PROC-001")
-                String code,
-                @Schema(description = "The type of the process, e.g., 'PROCESS', 'REGULATION'.", example = "PROCESS")
-                String type) {
+                String code) {
         }
 
         @Schema(description = "Detailed information about this specific version of the process.")

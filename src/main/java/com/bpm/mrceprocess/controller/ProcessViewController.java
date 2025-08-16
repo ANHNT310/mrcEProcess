@@ -4,6 +4,7 @@ import com.bpm.dtos.BaseResponse;
 import com.bpm.dtos.LazyLoadEventDTO;
 import com.bpm.dtos.PageResponse;
 import com.bpm.mrceprocess.common.dtos.*;
+import com.bpm.mrceprocess.common.enums.GeneralInformationType;
 import com.bpm.mrceprocess.common.enums.ProcessScopeEnum;
 import com.bpm.mrceprocess.service.ProcessViewService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,12 +45,12 @@ public class ProcessViewController {
         return BaseResponse.success(processViewService.detail(processDetailId));
     }
 
-    @PostMapping("/available/scope/{scope}")
+    @PostMapping("/available/type/{type}")
     @Operation(summary = "Get available processes by scope", description = "Retrieves a paginated list of available (published) processes filtered by a specific scope.")
     public BaseResponse<PageResponse<GeneralInformationDTO>> getAvailableByScope(
-            @Parameter(description = "The scope of the processes to retrieve", required = true) @PathVariable ProcessScopeEnum scope,
+            @Parameter(description = "The scope of the processes to retrieve", required = true) @PathVariable GeneralInformationType type,
             @RequestBody LazyLoadEventDTO eventDTO) {
-        return BaseResponse.success(PageResponse.from(processViewService.availableByScope(scope, eventDTO)));
+        return BaseResponse.success(PageResponse.from(processViewService.availableByScope(type, eventDTO)));
     }
 
     @PostMapping("/histories/{generalId}")

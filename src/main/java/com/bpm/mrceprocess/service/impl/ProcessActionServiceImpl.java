@@ -33,12 +33,18 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     private final OriginalDocumentMapper originalDocumentMapper;
     private final DiagramDescriptionMapper diagramDescriptionMapper;
     private final TermAbbreviationMapper termAbbreviationMapper;
-    private final GeneralInformationWorkflowRepository generalInformationWorkflowRepository;
+    private final WorkflowConfigRepository workflowConfigRepository;
     private final SaveProcessRequestDTOMapper saveProcessRequestDTOMapper;
+    private final GeneralInformationHistoryTicketRepository informationHistoryTicketRepository;
 
     @Override
     @Transactional
-    public SaveProcessRequestDTO.Response save(ProcessActionSaveType type, SaveProcessRequestDTO.Request request) {
+    public SaveProcessRequestDTO.Response save(ProcessActionSaveType type, String generalWorkflowId, SaveProcessRequestDTO.Request request) {
+
+        WorkflowConfig informationWorkflow = workflowConfigRepository.findById(generalWorkflowId)
+                .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND, "Information Workflow not found."));
+
+        GeneralInformationType currentType = informationWorkflow.getType();
 
         GeneralInformation generalInformation;
         if (StringUtils.isEmpty(request.general().code())) {
@@ -49,7 +55,7 @@ public class ProcessActionServiceImpl implements ProcessActionService {
 
             generalInformation = GeneralInformation.builder()
                     .code(String.format("%s-%s", ApplicationConst.GENERAL_INFORMATION_PREFIX_CODE, sequencePart))
-                    .type(GeneralInformationType.valueOf(request.general().type()))
+                    .type(currentType)
                     .build();
             generalInformation = generalInformationRepository.save(generalInformation);
         } else {
@@ -74,16 +80,11 @@ public class ProcessActionServiceImpl implements ProcessActionService {
             Map<String, Object> createPayload = new HashMap<>();
             createPayload.put(ApplicationConst.E_PROCESS_ID_VARIABLE_FIELD, informationHistory.getId());
 
-            GeneralInformationType informationType = informationHistory.getGeneralInformation().getType();
-
-            GeneralInformationWorkflow generalInformationWorkflow = generalInformationWorkflowRepository.findByType(informationType)
-                    .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND, "Workflow not found"));
-
-            WorkflowStartPayloadResDTO started = workflowService.startWorkflow(generalInformationWorkflow.getWorkflowName(), createPayload);
+            WorkflowStartPayloadResDTO started = workflowService.startWorkflow(informationWorkflow.getWorkflowName(), createPayload);
 
             GeneralInformationHistoryTicket ticket = new GeneralInformationHistoryTicket();
             ticket.setInformationHistory(informationHistory);
-            ticket.setInformationWorkflow(generalInformationWorkflow);
+            ticket.setInformationWorkflow(informationWorkflow);
             ticket.setBusinessCode(started.getBusinessKey());
 
             informationHistory.addGeneralInformationHistoryWorkflow(ticket);
@@ -129,8 +130,10 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     @Override
     @Transactional
     public void workflowCanceled(ProcessCanceledEventDTO eventDTO) {
-//        GeneralInformationHistory informationHistory = historyRepository.findByBusinessCode(eventDTO.getBusinessKey())
-//                .orElse(null);
+        GeneralInformationHistoryTicket ticket = informationHistoryTicketRepository.findByBusinessCode(eventDTO.getBusinessKey())
+                .orElse(null);
+
+
 //
 //        if (informationHistory == null) {
 //            log.error("Workflow cancel informationHistory is null");
@@ -143,13 +146,22 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     @Override
     @Transactional
     public void workflowMoveNextStep(UserTaskCreatedEventDTO eventDTO) {
-//        GeneralInformationHistory informationHistory = historyRepository.findByBusinessCode(eventDTO.getBusinessKey())
-//                .orElse(null);
-//        if (informationHistory == null) {
-//            log.error("Workflow next step informationHistory is null");
-//            return;
-//        }
-//        historyRepository.save(informationHistory);
+        GeneralInformationHistoryTicket ticket = informationHistoryTicketRepository.findByBusinessCode(eventDTO.getBusinessKey())
+                .orElse(null);
+        if (ticket == null) {
+            log.error("Workflow next step informationHistory is null");
+            return;
+        }
+
+        Set<WorkflowConfigStatus> statuses = ticket.getInformationWorkflow().getStatuses();
+
+        WorkflowConfigStatus updateStatus = statuses.stream().filter(status -> status.getTaskName().equalsIgnoreCase(eventDTO.getTaskName()))
+                .findFirst().orElse(null);
+
+        GeneralInformationHistory informationHistory = ticket.getInformationHistory();
+        informationHistory.setStatus(updateStatus == null ? eventDTO.getTaskName() : updateStatus.getName());
+
+        historyRepository.save(informationHistory);
     }
 
     @Override

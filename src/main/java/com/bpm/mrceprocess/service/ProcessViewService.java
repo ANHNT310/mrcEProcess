@@ -2,6 +2,7 @@ package com.bpm.mrceprocess.service;
 
 import com.bpm.dtos.LazyLoadEventDTO;
 import com.bpm.mrceprocess.common.dtos.*;
+import com.bpm.mrceprocess.common.enums.GeneralInformationType;
 import com.bpm.mrceprocess.common.enums.ProcessScopeEnum;
 import org.springframework.data.domain.Page;
 
@@ -19,5 +20,5 @@ public interface ProcessViewService {
 
     ProcessDetailDTO availableDetail (String generalId);
 
-    Page<GeneralInformationDTO> availableByScope (ProcessScopeEnum scope, LazyLoadEventDTO eventDTO);
+    Page<GeneralInformationDTO> availableByScope (GeneralInformationType type, LazyLoadEventDTO eventDTO);
 }

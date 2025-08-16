@@ -20,7 +20,7 @@ public class GeneralInformationHistoryTicket extends AuditorProvider {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "general_information_workflow_id")
-    private GeneralInformationWorkflow informationWorkflow;
+    private WorkflowConfig informationWorkflow;
 
     @Column(name = "business_code")
     private String businessCode;

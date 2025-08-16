@@ -5,6 +5,7 @@ import com.bpm.enums.ApplicationMessage;
 import com.bpm.exception.ApplicationException;
 import com.bpm.mrceprocess.common.consts.ApplicationConst;
 import com.bpm.mrceprocess.common.dtos.*;
+import com.bpm.mrceprocess.common.enums.GeneralInformationType;
 import com.bpm.mrceprocess.common.enums.ProcessScopeEnum;
 import com.bpm.mrceprocess.external.WorkflowService;
 import com.bpm.mrceprocess.external.payload.WorkflowTaskSummaryDTO;
@@ -12,11 +13,9 @@ import com.bpm.mrceprocess.mapping.*;
 import com.bpm.mrceprocess.persistence.entity.GeneralInformation;
 import com.bpm.mrceprocess.persistence.entity.GeneralInformationHistory;
 import com.bpm.mrceprocess.persistence.entity.ProcessDetailInformationView;
-import com.bpm.mrceprocess.persistence.entity.ProcessScopeConfig;
 import com.bpm.mrceprocess.persistence.repository.GeneralInformationHistoryRepository;
 import com.bpm.mrceprocess.persistence.repository.GeneralInformationRepository;
 import com.bpm.mrceprocess.persistence.repository.ProcessDetailInformationViewRepository;
-import com.bpm.mrceprocess.persistence.repository.ProcessScopeConfigRepository;
 import com.bpm.mrceprocess.security.AuthenticateComponent;
 import com.bpm.mrceprocess.service.ProcessViewService;
 import com.bpm.utils.FilterSpecification;
@@ -46,7 +45,6 @@ public class ProcessViewServiceImpl implements ProcessViewService {
     private final ProcessDetailDTOMapper processDetailDTOMapper;
     private final GeneralInformationHistoryMapper generalInformationHistoryMapper;
     private final GeneralInformationRepository generalInformationRepository;
-    private final ProcessScopeConfigRepository processScopeConfigRepository;
     private final GeneralInformationMapper generalInformationMapper;
     private final ProcessDetailInformationPendingDTOMapper processDetailInformationPendingDTOMapper;
 
@@ -149,11 +147,10 @@ public class ProcessViewServiceImpl implements ProcessViewService {
     }
 
     @Override
-    public Page<GeneralInformationDTO> availableByScope(ProcessScopeEnum scope, LazyLoadEventDTO eventDTO) {
-        List<ProcessScopeConfig> processScopeConfig = processScopeConfigRepository.findByType(scope);
+    public Page<GeneralInformationDTO> availableByScope(GeneralInformationType type, LazyLoadEventDTO eventDTO) {
 
         Specification<GeneralInformation> specification = (root, query, criteriaBuilder) ->
-                root.get("scope").in(processScopeConfig);
+                criteriaBuilder.equal(root.get("type"), type);
 
         Specification<GeneralInformation> filterSpec = new FilterSpecification<>(eventDTO);
 

@@ -19,11 +19,11 @@ public class MasterDataServiceImpl implements MasterDataService {
     private final DocumentTypeRepository documentTypeRepository;
     private final AuthorityRepository authorityRepository;
     private final GeneralInformationRepository generalInformationRepository;
-    private final GeneralInformationScopeConfigRepository scopeConfigRepository;
+    private final WorkflowConfigRepository workflowConfigRepository;
 
     @Override
     public List<SelectItem> processScope() {
-        return scopeConfigRepository.findAll().stream().map(m -> new SelectItem(m.getId(), m.getName())).toList();
+        return workflowConfigRepository.findAll().stream().map(m -> new SelectItem(m.getId(), m.getDisplayName())).toList();
     }
 
     @Override
