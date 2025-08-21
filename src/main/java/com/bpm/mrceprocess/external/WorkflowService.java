@@ -1,6 +1,8 @@
 package com.bpm.mrceprocess.external;
 
+import com.bpm.dtos.BaseResponse;
 import com.bpm.mrceprocess.configuration.FeignClientConfig;
+import com.bpm.mrceprocess.external.payload.WorkflowDefinitionResDTO;
 import com.bpm.mrceprocess.external.payload.WorkflowStartPayloadResDTO;
 import com.bpm.mrceprocess.external.payload.WorkflowTaskSummaryDTO;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -21,4 +23,7 @@ public interface WorkflowService {
 
     @GetMapping("/user-tasks/pending/group/{group}")
     List<WorkflowTaskSummaryDTO> pending (@PathVariable("group") String group);
+
+    @GetMapping("/workflow/definition-configs/tenant/{tenantId}")
+    List<WorkflowDefinitionResDTO> getWorkflowDefinitionConfigsByTenantId(@PathVariable String tenantId);
 }

@@ -61,4 +61,10 @@ public class MasterDataController {
     public BaseResponse<List<SelectItem>> getProcesses() {
         return BaseResponse.success(masterDataService.processes());
     }
+
+    @GetMapping("/workflow")
+    @Operation(summary = "Get Workflow", description = "Retrieves a list of all available processes.")
+    public BaseResponse<List<SelectItem>> getWorkflow() {
+        return BaseResponse.success(masterDataService.workflow());
+    }
 }

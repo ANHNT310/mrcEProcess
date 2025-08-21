@@ -1,7 +1,9 @@
 package com.bpm.mrceprocess.mapping;
 
 import com.bpm.mrceprocess.persistence.entity.Category;
+import com.bpm.mrceprocess.persistence.entity.WorkflowConfig;
 import com.bpm.mrceprocess.persistence.repository.CategoryRepository;
+import com.bpm.mrceprocess.persistence.repository.WorkflowConfigRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Named;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Component;
 public class MappingHelper {
 
     private final CategoryRepository categoryRepository;
+    private final WorkflowConfigRepository workflowConfigRepository;
 
     @Named("categoryFromId")
     public Category categoryFromId(String id) {
@@ -20,5 +23,14 @@ public class MappingHelper {
         }
 
         return categoryRepository.findById(id).orElse(null);
+    }
+
+    @Named("workflowConfigFromId")
+    public WorkflowConfig workflowConfigFromId(String id) {
+        if (StringUtils.isEmpty(id)) {
+            return null;
+        }
+
+        return workflowConfigRepository.findById(id).orElse(null);
     }
 }

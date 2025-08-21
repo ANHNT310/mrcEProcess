@@ -42,6 +42,8 @@ public class SaveProcessRequestDTO {
                 String objectId,
                 @Schema(description = "The category of the process (ID of a Category).", example = "CAT-HR")
                 String category,
+                @Schema(description = "The workflow of the process (ID of a workflow Config).", example = "CAT-HR")
+                String workflow,
                 @Schema(description = "The rule for when the process becomes effective.")
                 EffectiveType effectiveType,
                 @Schema(description = "The specific date the process becomes effective (if effectiveType is SPECIFIC).", example = "2025-01-01T10:00:00")

@@ -21,16 +21,15 @@ public class ProcessActionController {
 
     private final ProcessActionService processActionService;
 
-    @PostMapping("/save/{type}/workflow/{workflow}")
+    @PostMapping("/save/{type}")
     @Operation(summary = "Create a new process as a draft", description = "Saves a new process in a draft state without starting a workflow.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Draft created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input")
     })
     public BaseResponse<SaveProcessRequestDTO.Response> save(@RequestBody SaveProcessRequestDTO.Request request,
-                                                             @PathVariable ProcessActionSaveType type,
-                                                             @PathVariable String workflow) {
-        return BaseResponse.success(processActionService.save(type, workflow, request));
+                                                             @PathVariable ProcessActionSaveType type) {
+        return BaseResponse.success(processActionService.save(type, request));
     }
 
     @DeleteMapping("/delete/draft/{historyId}")

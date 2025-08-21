@@ -14,6 +14,4 @@ public class WorkflowConfigDTO implements Serializable {
     String workflowName;
     String displayName;
     GeneralInformationType type;
-    boolean submit;
-    boolean deactivate;
 }

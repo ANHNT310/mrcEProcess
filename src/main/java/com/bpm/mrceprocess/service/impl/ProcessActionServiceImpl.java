@@ -39,9 +39,9 @@ public class ProcessActionServiceImpl implements ProcessActionService {
 
     @Override
     @Transactional
-    public SaveProcessRequestDTO.Response save(ProcessActionSaveType type, String generalWorkflowId, SaveProcessRequestDTO.Request request) {
+    public SaveProcessRequestDTO.Response save(ProcessActionSaveType type, SaveProcessRequestDTO.Request request) {
 
-        WorkflowConfig informationWorkflow = workflowConfigRepository.findById(generalWorkflowId)
+        WorkflowConfig informationWorkflow = workflowConfigRepository.findById(request.information().workflow())
                 .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND, "Information Workflow not found."));
 
         GeneralInformationType currentType = informationWorkflow.getType();
@@ -76,6 +76,8 @@ public class ProcessActionServiceImpl implements ProcessActionService {
         informationHistory.setVersion(countByGeneral + 1);
         informationHistory.setGeneralInformation(generalInformation);
 
+        informationHistory = historyRepository.save(informationHistory);
+
         if (ProcessActionSaveType.submit.equals(type)) {
             Map<String, Object> createPayload = new HashMap<>();
             createPayload.put(ApplicationConst.E_PROCESS_ID_VARIABLE_FIELD, informationHistory.getId());
@@ -84,14 +86,12 @@ public class ProcessActionServiceImpl implements ProcessActionService {
 
             GeneralInformationHistoryTicket ticket = new GeneralInformationHistoryTicket();
             ticket.setInformationHistory(informationHistory);
-            ticket.setInformationWorkflow(informationWorkflow);
             ticket.setBusinessCode(started.getBusinessKey());
 
             informationHistory.addGeneralInformationHistoryWorkflow(ticket);
             informationHistory.setDraft(false);
+            informationHistory = historyRepository.save(informationHistory);
         }
-
-        informationHistory = historyRepository.save(informationHistory);
 
         return new SaveProcessRequestDTO.Response(generalInformation.getCode(), informationHistory.getId());
     }
@@ -153,7 +153,7 @@ public class ProcessActionServiceImpl implements ProcessActionService {
             return;
         }
 
-        Set<WorkflowConfigStatus> statuses = ticket.getInformationWorkflow().getStatuses();
+        Set<WorkflowConfigStatus> statuses = ticket.getInformationHistory().getWorkflow().getStatuses();
 
         WorkflowConfigStatus updateStatus = statuses.stream().filter(status -> status.getTaskName().equalsIgnoreCase(eventDTO.getTaskName()))
                 .findFirst().orElse(null);

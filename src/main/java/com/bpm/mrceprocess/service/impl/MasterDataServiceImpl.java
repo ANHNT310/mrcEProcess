@@ -1,9 +1,12 @@
 package com.bpm.mrceprocess.service.impl;
 
 import com.bpm.dtos.SelectItem;
+import com.bpm.mrceprocess.common.consts.ApplicationConst;
 import com.bpm.mrceprocess.common.enums.DocumentStatus;
 import com.bpm.mrceprocess.common.enums.EffectiveType;
 import com.bpm.mrceprocess.common.enums.ProcessScopeEnum;
+import com.bpm.mrceprocess.external.WorkflowService;
+import com.bpm.mrceprocess.external.payload.WorkflowDefinitionResDTO;
 import com.bpm.mrceprocess.persistence.repository.*;
 import com.bpm.mrceprocess.service.MasterDataService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,7 @@ public class MasterDataServiceImpl implements MasterDataService {
     private final AuthorityRepository authorityRepository;
     private final GeneralInformationRepository generalInformationRepository;
     private final WorkflowConfigRepository workflowConfigRepository;
+    private final WorkflowService workflowService;
 
     @Override
     public List<SelectItem> processScope() {
@@ -61,5 +65,11 @@ public class MasterDataServiceImpl implements MasterDataService {
         return generalInformationRepository.findAll().stream()
                 .map(m -> new SelectItem(m.getId(), m.getCode() + " - " + m.getCode()))
                 .toList();
+    }
+
+    @Override
+    public List<SelectItem> workflow() {
+        List<WorkflowDefinitionResDTO> definitionResDTOS = workflowService.getWorkflowDefinitionConfigsByTenantId(ApplicationConst.WORKFLOW_TENANT);
+        return definitionResDTOS.stream().map(m -> new SelectItem(m.getName(), m.getName())).toList();
     }
 }

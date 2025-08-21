@@ -11,6 +11,7 @@ public interface SaveProcessRequestDTOMapper {
             @Mapping(target = "name", source = "information.name"),
             @Mapping(target = "shortDescription", source = "information.shortDescription"),
             @Mapping(target = "category", source = "information.category", qualifiedByName = "categoryFromId"),
+            @Mapping(target = "workflow", source = "information.workflow", qualifiedByName = "workflowConfigFromId"),
             @Mapping(target = "effectiveType", source = "information.effectiveType"),
             @Mapping(target = "effectiveDate", source = "information.effectiveDate"),
             @Mapping(target = "endDate", source = "information.endDate"),

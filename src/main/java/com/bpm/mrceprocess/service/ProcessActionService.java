@@ -5,7 +5,7 @@ import com.bpm.mrceprocess.common.enums.ProcessActionSaveType;
 
 public interface ProcessActionService {
 
-    SaveProcessRequestDTO.Response save(ProcessActionSaveType type, String generalWorkflowId, SaveProcessRequestDTO.Request request);
+    SaveProcessRequestDTO.Response save(ProcessActionSaveType type, SaveProcessRequestDTO.Request request);
 
     void deleteDraft (String historyId);
 

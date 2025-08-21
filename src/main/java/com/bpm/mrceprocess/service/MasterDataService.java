@@ -19,4 +19,6 @@ public interface MasterDataService {
     List<SelectItem> authorities();
 
     List<SelectItem> processes();
+
+    List<SelectItem> workflow();
 }

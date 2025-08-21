@@ -33,6 +33,10 @@ public class GeneralInformationHistory extends AuditorProvider {
     @JoinColumn(name = "process_category_id", referencedColumnName = "id")
     private Category category;
 
+    @ManyToOne
+    @JoinColumn(name = "workflow_config_id", referencedColumnName = "id")
+    private WorkflowConfig workflow;
+
     @Enumerated(EnumType.STRING)
     private EffectiveType effectiveType;
 

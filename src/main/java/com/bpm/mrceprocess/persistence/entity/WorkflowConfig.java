@@ -27,10 +27,6 @@ public class WorkflowConfig extends AuditorProvider{
     @Column(name = "type", unique = true, nullable = false)
     private GeneralInformationType type;
 
-    private boolean submit = false;
-
-    private boolean deactivate = false;
-
     @OneToMany(mappedBy = "workflowConfig", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private Set<WorkflowConfigStatus> statuses = new HashSet<>();
     public void addStatus(WorkflowConfigStatus status) {
