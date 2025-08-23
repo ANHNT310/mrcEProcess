@@ -36,6 +36,7 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     private final WorkflowConfigRepository workflowConfigRepository;
     private final SaveProcessRequestDTOMapper saveProcessRequestDTOMapper;
     private final GeneralInformationHistoryTicketRepository informationHistoryTicketRepository;
+    private final WorkflowConfigStatusRepository workflowConfigStatusRepository;
 
     @Override
     @Transactional
@@ -153,10 +154,8 @@ public class ProcessActionServiceImpl implements ProcessActionService {
             return;
         }
 
-        Set<WorkflowConfigStatus> statuses = ticket.getInformationHistory().getWorkflow().getStatuses();
-
-        WorkflowConfigStatus updateStatus = statuses.stream().filter(status -> status.getTaskName().equalsIgnoreCase(eventDTO.getTaskName()))
-                .findFirst().orElse(null);
+        WorkflowConfigStatus updateStatus = workflowConfigStatusRepository.findByTaskName(eventDTO.getTaskName())
+                .orElse(null);
 
         GeneralInformationHistory informationHistory = ticket.getInformationHistory();
         informationHistory.setStatus(updateStatus == null ? eventDTO.getTaskName() : updateStatus.getName());

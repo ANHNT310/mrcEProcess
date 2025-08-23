@@ -22,10 +22,6 @@ public class WorkflowConfigStatus {
     @Enumerated(EnumType.STRING)
     private ProcessStatusSeverityEnum severity;
 
-    @ManyToOne
-    @JoinColumn(name = "workflow_config_id", referencedColumnName = "id")
-    private WorkflowConfig workflowConfig;
-
     private boolean defaultBegin = false;
 
     private boolean defaultEnd = false;

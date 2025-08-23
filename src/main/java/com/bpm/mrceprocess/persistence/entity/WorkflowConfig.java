@@ -26,19 +26,4 @@ public class WorkflowConfig extends AuditorProvider{
     @Enumerated(EnumType.STRING)
     @Column(name = "type", unique = true, nullable = false)
     private GeneralInformationType type;
-
-    @OneToMany(mappedBy = "workflowConfig", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    private Set<WorkflowConfigStatus> statuses = new HashSet<>();
-    public void addStatus(WorkflowConfigStatus status) {
-        if (status != null) {
-            this.statuses.add(status);
-            status.setWorkflowConfig(this);
-        }
-    }
-    public void removeStatus(WorkflowConfigStatus status) {
-        if (status != null) {
-            this.statuses.remove(status);
-            status.setWorkflowConfig(null);
-        }
-    }
 }
