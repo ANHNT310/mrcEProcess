@@ -1,8 +1,7 @@
 package com.bpm.mrceprocess.controller;
 
 import com.bpm.dtos.BaseResponse;
-import com.bpm.mrceprocess.common.dtos.SaveProcessRequestDTO;
-import com.bpm.mrceprocess.common.dtos.SubmitDeactivateProcessDTO;
+import com.bpm.mrceprocess.common.dtos.*;
 import com.bpm.mrceprocess.common.enums.ProcessActionSaveType;
 import com.bpm.mrceprocess.service.ProcessActionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,8 +26,8 @@ public class ProcessActionController {
             @ApiResponse(responseCode = "200", description = "Draft created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input")
     })
-    public BaseResponse<SaveProcessRequestDTO.Response> save(@RequestBody SaveProcessRequestDTO.Request request,
-                                                             @PathVariable ProcessActionSaveType type) {
+    public BaseResponse<SaveProcessResponseDTO> save(@RequestBody SaveProcessRequestDTO request,
+                                                     @PathVariable ProcessActionSaveType type) {
         return BaseResponse.success(processActionService.save(type, request));
     }
 
@@ -65,15 +64,15 @@ public class ProcessActionController {
         return BaseResponse.success(null);
     }
 
-    @PostMapping("/submit/deactivate")
+    @PostMapping("/deactivate")
     @Operation(summary = "Submit a process for deactivation", description = "Submits a request to deactivate an active process, initiating a workflow if required.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Process deactivation submitted successfully"),
             @ApiResponse(responseCode = "404", description = "Process not found"),
             @ApiResponse(responseCode = "400", description = "Invalid input")
     })
-    public BaseResponse<SubmitDeactivateProcessDTO.Response> submitDeactivateProcess(@RequestBody SubmitDeactivateProcessDTO.Request request) {
-        return BaseResponse.success(processActionService.submitDeactivate(request));
+    public BaseResponse<DeactivateProcessResponseDTO> deactivate(@RequestBody DeactivateProcessRequestDTO request) {
+        return BaseResponse.success(processActionService.deactivate(request));
     }
 
 }

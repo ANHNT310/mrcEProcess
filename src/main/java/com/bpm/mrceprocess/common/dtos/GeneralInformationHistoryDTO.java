@@ -26,5 +26,8 @@ public class GeneralInformationHistoryDTO implements Serializable {
     String diagramId;
     String objectId;
     String categoryId;
-    String code;
+    String workflow;
+    String name;
+    String shortDescription;
+
 }

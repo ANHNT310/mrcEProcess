@@ -1,6 +1,7 @@
 package com.bpm.mrceprocess.persistence.entity;
 
 import com.bpm.mrceprocess.common.enums.GeneralInformationType;
+import com.bpm.mrceprocess.common.enums.WorkflowConfigScope;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,4 +27,8 @@ public class WorkflowConfig extends AuditorProvider{
     @Enumerated(EnumType.STRING)
     @Column(name = "type", unique = true, nullable = false)
     private GeneralInformationType type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "scope", unique = true, nullable = false)
+    private WorkflowConfigScope scope = WorkflowConfigScope.NEW;
 }

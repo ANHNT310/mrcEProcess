@@ -2,11 +2,13 @@ package com.bpm.mrceprocess.controller;
 
 import com.bpm.dtos.BaseResponse;
 import com.bpm.dtos.SelectItem;
+import com.bpm.mrceprocess.common.enums.WorkflowConfigScope;
 import com.bpm.mrceprocess.service.MasterDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,10 +22,10 @@ public class MasterDataController {
 
     private final MasterDataService masterDataService;
 
-    @GetMapping("/process-scopes")
+    @GetMapping("/workflow/scope/{scope}")
     @Operation(summary = "Get Process Scopes", description = "Retrieves a list of available process scopes.")
-    public BaseResponse<List<SelectItem>> getProcessScopes() {
-        return BaseResponse.success(masterDataService.processScope());
+    public BaseResponse<List<SelectItem>> getProcessWorkflow(@PathVariable WorkflowConfigScope scope) {
+        return BaseResponse.success(masterDataService.processWorkflow(scope));
     }
 
     @GetMapping("/categories")

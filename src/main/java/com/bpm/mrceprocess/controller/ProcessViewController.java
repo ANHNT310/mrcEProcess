@@ -5,7 +5,6 @@ import com.bpm.dtos.LazyLoadEventDTO;
 import com.bpm.dtos.PageResponse;
 import com.bpm.mrceprocess.common.dtos.*;
 import com.bpm.mrceprocess.common.enums.GeneralInformationType;
-import com.bpm.mrceprocess.common.enums.ProcessScopeEnum;
 import com.bpm.mrceprocess.service.ProcessViewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,7 +24,7 @@ public class ProcessViewController {
 
     @PostMapping("/by-user")
     @Operation(summary = "Get processes by current user", description = "Retrieves a paginated list of processes created by the currently authenticated user.")
-    public BaseResponse<PageResponse<ProcessDetailInformationViewDTO>> getByUser(@RequestBody LazyLoadEventDTO eventDTO) {
+    public BaseResponse<PageResponse<ViewProcessDTO>> getByUser(@RequestBody LazyLoadEventDTO eventDTO) {
         return BaseResponse.success(PageResponse.from(processViewService.byUser(eventDTO)));
     }
 
@@ -47,7 +46,7 @@ public class ProcessViewController {
 
     @PostMapping("/available/type/{type}")
     @Operation(summary = "Get available processes by scope", description = "Retrieves a paginated list of available (published) processes filtered by a specific scope.")
-    public BaseResponse<PageResponse<GeneralInformationDTO>> getAvailableByScope(
+    public BaseResponse<PageResponse<ViewProcessDTO>> getAvailableByScope(
             @Parameter(description = "The scope of the processes to retrieve", required = true) @PathVariable GeneralInformationType type,
             @RequestBody LazyLoadEventDTO eventDTO) {
         return BaseResponse.success(PageResponse.from(processViewService.availableByScope(type, eventDTO)));

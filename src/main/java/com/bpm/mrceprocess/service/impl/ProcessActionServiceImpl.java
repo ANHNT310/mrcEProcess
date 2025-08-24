@@ -6,6 +6,7 @@ import com.bpm.mrceprocess.common.consts.ApplicationConst;
 import com.bpm.mrceprocess.common.dtos.*;
 import com.bpm.mrceprocess.common.enums.GeneralInformationType;
 import com.bpm.mrceprocess.common.enums.ProcessActionSaveType;
+import com.bpm.mrceprocess.common.enums.WorkflowConfigScope;
 import com.bpm.mrceprocess.external.WorkflowService;
 import com.bpm.mrceprocess.external.payload.WorkflowStartPayloadResDTO;
 import com.bpm.mrceprocess.mapping.*;
@@ -40,16 +41,15 @@ public class ProcessActionServiceImpl implements ProcessActionService {
 
     @Override
     @Transactional
-    public SaveProcessRequestDTO.Response save(ProcessActionSaveType type, SaveProcessRequestDTO.Request request) {
+    public SaveProcessResponseDTO save(ProcessActionSaveType type, SaveProcessRequestDTO request) {
 
-        WorkflowConfig informationWorkflow = workflowConfigRepository.findById(request.information().workflow())
+        WorkflowConfig informationWorkflow = workflowConfigRepository.findById(request.getInformation().getWorkflow())
                 .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND, "Information Workflow not found."));
 
         GeneralInformationType currentType = informationWorkflow.getType();
 
         GeneralInformation generalInformation;
-        if (StringUtils.isEmpty(request.general().code())) {
-
+        if (StringUtils.isEmpty(request.getGeneral().getCode())) {
             int lastValue = generalInformationRepository.countAllByCodeIsNotNull();
             int nextValue = lastValue + 1;
             String sequencePart = String.format("%03d", nextValue);
@@ -60,15 +60,15 @@ public class ProcessActionServiceImpl implements ProcessActionService {
                     .build();
             generalInformation = generalInformationRepository.save(generalInformation);
         } else {
-            generalInformation = generalInformationRepository.findByCode(request.general().code())
+            generalInformation = generalInformationRepository.findByCode(request.getGeneral().getCode())
                     .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND, "General information not found"));
         }
 
         GeneralInformationHistory informationHistory;
-        if (StringUtils.isEmpty(request.information().id())) {
+        if (StringUtils.isEmpty(request.getInformation().getId())) {
             informationHistory = saveProcessRequestDTOMapper.fromDTO(request);
         } else {
-            informationHistory = historyRepository.findById(request.information().id())
+            informationHistory = historyRepository.findById(request.getInformation().getId())
                     .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND,"History not found"));
             saveProcessRequestDTOMapper.updateFromDTO(informationHistory, request);
         }
@@ -94,7 +94,51 @@ public class ProcessActionServiceImpl implements ProcessActionService {
             informationHistory = historyRepository.save(informationHistory);
         }
 
-        return new SaveProcessRequestDTO.Response(generalInformation.getCode(), informationHistory.getId());
+        return new SaveProcessResponseDTO(generalInformation.getCode(), informationHistory.getId());
+    }
+
+    @Override
+    public DeactivateProcessResponseDTO deactivate(DeactivateProcessRequestDTO request) {
+        GeneralInformation generalInformation = generalInformationRepository.findById(request.getGeneralId())
+                        .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
+
+        GeneralInformationHistory availableHistory = generalInformation.getAvailable();
+
+        List<WorkflowConfig> workflowConfigs = workflowConfigRepository.findByScope(WorkflowConfigScope.DEACTIVATE);
+
+        if (workflowConfigs.isEmpty()) {
+            throw new ApplicationException(ApplicationMessage.NOT_FOUND, "Workflow not found");
+        }
+
+        String workflowName = null;
+        WorkflowConfig workflowConfigAll = workflowConfigs.stream().filter(m -> m.getType().equals(GeneralInformationType.ALL))
+                .findFirst().orElse(null);
+        if (workflowConfigAll != null) {
+            workflowName = workflowConfigAll.getWorkflowName();
+        } else {
+            WorkflowConfig workflowConfigByType = workflowConfigs.stream()
+                    .filter(m -> m.getType().equals(availableHistory.getWorkflow().getType()))
+                    .findFirst().orElse(null);
+            if (workflowConfigByType == null) {
+                throw new ApplicationException(ApplicationMessage.NOT_FOUND, "Workflow not found");
+            } else {
+                workflowName = workflowConfigByType.getWorkflowName();
+            }
+        }
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put(ApplicationConst.E_PROCESS_ID_VARIABLE_FIELD, generalInformation.getAvailable().getId());
+        variables.put(ApplicationConst.E_PROCESS_SCOPE_VARIABLE_FIELD, availableHistory.getWorkflow().getType());
+
+        WorkflowStartPayloadResDTO started = workflowService.startWorkflow(workflowName, variables);
+        GeneralInformationHistoryTicket ticket = new GeneralInformationHistoryTicket();
+        ticket.setInformationHistory(availableHistory);
+        ticket.setBusinessCode(started.getBusinessKey());
+
+        availableHistory.addGeneralInformationHistoryWorkflow(ticket);
+        historyRepository.save(availableHistory);
+
+        return new DeactivateProcessResponseDTO(generalInformation.getAvailable().getId(), started.getBusinessKey());
     }
 
     @Override
@@ -133,15 +177,12 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     public void workflowCanceled(ProcessCanceledEventDTO eventDTO) {
         GeneralInformationHistoryTicket ticket = informationHistoryTicketRepository.findByBusinessCode(eventDTO.getBusinessKey())
                 .orElse(null);
-
-
-//
-//        if (informationHistory == null) {
-//            log.error("Workflow cancel informationHistory is null");
-//            return;
-//        }
-//
-//        historyRepository.save(informationHistory);
+        if (ticket == null) {
+            log.error("Workflow canceled informationHistory is null");
+            return;
+        }
+        ticket.setCompleted(true);
+        informationHistoryTicketRepository.save(ticket);
     }
 
     @Override
@@ -164,23 +205,6 @@ public class ProcessActionServiceImpl implements ProcessActionService {
     }
 
     @Override
-    public SubmitDeactivateProcessDTO.Response submitDeactivate(SubmitDeactivateProcessDTO.Request request) {
-        GeneralInformation generalInformation = generalInformationRepository.findById(request.generalId())
-                .orElseThrow(() -> new ApplicationException(ApplicationMessage.NOT_FOUND));
-
-        if (generalInformation.getAvailable() == null) {
-            return null;
-        }
-
-        Map<String, Object> variables = new HashMap<>();
-        variables.put(ApplicationConst.E_PROCESS_ID_VARIABLE_FIELD, generalInformation.getAvailable().getId());
-
-        WorkflowStartPayloadResDTO startRes = workflowService.startWorkflow(ApplicationConst.WORKFLOW_DEACTIVATE_NAME, variables);
-
-        return new SubmitDeactivateProcessDTO.Response(generalInformation.getAvailable().getId(), startRes.getBusinessKey());
-    }
-
-    @Override
     @Transactional
     public void deactivateProcess(String historyId) {
         GeneralInformationHistory informationHistory = historyRepository.findById(historyId)
@@ -193,92 +217,5 @@ public class ProcessActionServiceImpl implements ProcessActionService {
             generalInformation.setAvailable(null);
             generalInformationRepository.save(generalInformation);
         });
-    }
-
-    private void synchronizeOriginalDocuments(GeneralInformationHistory history,
-                                              List<UpdateProcessRequestDTO.Request.Information.OriginalDocument> documentDTOs) {
-        Set<OriginalDocument> existingDocuments = history.getOriginalDocuments();
-        if (documentDTOs == null || documentDTOs.isEmpty()) {
-            existingDocuments.clear();
-            return;
-        }
-
-        Map<String, OriginalDocument> existingDocsMap = existingDocuments.stream()
-                .collect(Collectors.toMap(OriginalDocument::getId, Function.identity()));
-        Map<String, UpdateProcessRequestDTO.Request.Information.OriginalDocument> dtoMap = documentDTOs.stream()
-                .filter(dto -> StringUtils.isNotBlank(dto.id()))
-                .collect(Collectors.toMap(UpdateProcessRequestDTO.Request.Information.OriginalDocument::id, Function.identity()));
-
-        existingDocuments.removeIf(doc -> !dtoMap.containsKey(doc.getId()));
-
-        for (UpdateProcessRequestDTO.Request.Information.OriginalDocument dto : documentDTOs) {
-            if (StringUtils.isBlank(dto.id())) {
-                OriginalDocument newDoc = originalDocumentMapper.toEntity(dto);
-                history.addOriginalDocument(newDoc);
-            } else {
-                OriginalDocument existingDoc = existingDocsMap.get(dto.id());
-                if (existingDoc != null) {
-                    originalDocumentMapper.partialUpdate(dto, existingDoc);
-                }
-            }
-        }
-    }
-
-    private void synchronizeDiagramDescriptions(GeneralInformationHistory history,
-                                                List<UpdateProcessRequestDTO.Request.Diagram.Description> descriptionDTOs) {
-        Set<DiagramDescription> existingDescriptions = history.getDiagramDescriptions();
-        if (descriptionDTOs == null || descriptionDTOs.isEmpty()) {
-            existingDescriptions.clear();
-            return;
-        }
-
-        Map<String, DiagramDescription> existingDescMap = existingDescriptions.stream()
-                .filter(desc -> desc.getId() != null) // FIX: Prevent exception from items with null ID
-                .collect(Collectors.toMap(DiagramDescription::getId, Function.identity()));
-        Map<String, UpdateProcessRequestDTO.Request.Diagram.Description> dtoMap = descriptionDTOs.stream()
-                .filter(dto -> StringUtils.isNotBlank(dto.id()))
-                .collect(Collectors.toMap(UpdateProcessRequestDTO.Request.Diagram.Description::id, Function.identity()));
-
-        existingDescriptions.removeIf(desc -> !dtoMap.containsKey(desc.getId()));
-
-        for (UpdateProcessRequestDTO.Request.Diagram.Description dto : descriptionDTOs) {
-            if (StringUtils.isBlank(dto.id())) {
-                DiagramDescription newDesc = diagramDescriptionMapper.toEntity(dto);
-                history.addDiagramDescription(newDesc);
-            } else {
-                DiagramDescription existingDesc = existingDescMap.get(dto.id());
-                if (existingDesc != null) {
-                    diagramDescriptionMapper.partialUpdate(dto, existingDesc);
-                }
-            }
-        }
-    }
-
-    private void synchronizeTermAbbreviations(GeneralInformationHistory history, List<UpdateProcessRequestDTO.Request.TermAbbreviation> termDTOs) {
-        Set<TermAbbreviation> existingTerms = history.getTermAbbreviations();
-        if (termDTOs == null || termDTOs.isEmpty()) {
-            existingTerms.clear();
-            return;
-        }
-
-        Map<String, TermAbbreviation> existingTermMap = existingTerms.stream()
-                .collect(Collectors.toMap(TermAbbreviation::getId, Function.identity()));
-        Map<String, UpdateProcessRequestDTO.Request.TermAbbreviation> dtoMap = termDTOs.stream()
-                .filter(dto -> StringUtils.isNotBlank(dto.id()))
-                .collect(Collectors.toMap(UpdateProcessRequestDTO.Request.TermAbbreviation::id, Function.identity()));
-
-        existingTerms.removeIf(term -> !dtoMap.containsKey(term.getId()));
-
-        for (UpdateProcessRequestDTO.Request.TermAbbreviation dto : termDTOs) {
-            if (StringUtils.isBlank(dto.id())) {
-                TermAbbreviation newTerm = termAbbreviationMapper.toEntity(dto);
-                history.addTermAbbreviation(newTerm);
-            } else {
-                TermAbbreviation existingTerm = existingTermMap.get(dto.id());
-                if (existingTerm != null) {
-                    termAbbreviationMapper.partialUpdate(dto, existingTerm);
-                }
-            }
-        }
     }
 }

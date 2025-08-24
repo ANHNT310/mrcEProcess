@@ -2,7 +2,6 @@ package com.bpm.mrceprocess.mapping;
 
 import com.bpm.mrceprocess.common.dtos.GeneralInformationDTO;
 import com.bpm.mrceprocess.persistence.entity.GeneralInformation;
-import com.bpm.mrceprocess.persistence.entity.GeneralInformationHistory;
 import org.mapstruct.*;
 
 import java.util.Collection;
@@ -13,7 +12,6 @@ public interface GeneralInformationMapper {
 
     GeneralInformation toEntity(GeneralInformationDTO generalInformationDto);
 
-    @Mapping(target = "availableId", source = "available.id")
     GeneralInformationDTO toDto(GeneralInformation generalInformation);
 
     List<GeneralInformationDTO> toDto (Collection<GeneralInformation> generalInfos);

@@ -12,8 +12,10 @@ import java.util.List;
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING, uses = {MappingHelper.class})
 public interface GeneralInformationHistoryMapper {
 
+    @Mapping(target = "workflow", source = "workflow", qualifiedByName = "workflowConfigFromId")
     GeneralInformationHistory toEntity(GeneralInformationHistoryDTO generalInformationHistoryDTO);
 
+    @Mapping(target = "workflow", source = "workflow.id")
     GeneralInformationHistoryDTO toDto(GeneralInformationHistory generalInformationHistory);
 
     @Mapping(target = "id", source = "entity.id")
@@ -45,5 +47,6 @@ public interface GeneralInformationHistoryMapper {
     GeneralWorkflowViewDTO toDTO (GeneralInformationHistory entity);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "workflow", source = "workflow", qualifiedByName = "workflowConfigFromId")
     GeneralInformationHistory partialUpdate(GeneralInformationHistoryDTO generalInformationHistoryDTO, @MappingTarget GeneralInformationHistory generalInformationHistory);
 }

@@ -10,9 +10,6 @@ import java.time.LocalDateTime;
 public class GeneralInformationDTO implements Serializable {
     String id;
     String code;
-    String shortDescription;
-    String name;
-    String scope;
     LocalDateTime createdAt;
     String createdBy;
     LocalDateTime updatedAt;

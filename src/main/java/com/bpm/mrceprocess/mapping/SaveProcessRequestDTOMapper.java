@@ -31,34 +31,34 @@ public interface SaveProcessRequestDTOMapper {
             @Mapping(target = "generalInformationHistoryTickets", ignore = true),
             @Mapping(target = "draft", ignore = true)
     })
-    GeneralInformationHistory fromDTO(SaveProcessRequestDTO.Request dto);
+    GeneralInformationHistory fromDTO(SaveProcessRequestDTO dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "generalInformationHistory", ignore = true)
     @Mapping(target = "duration", source = "duration")
-    OriginalDocument fromDTO (SaveProcessRequestDTO.Request.Information.OriginalDocument dto);
+    OriginalDocument fromDTO (SaveProcessRequestDTO.Information.OriginalDocument dto);
 
     @Mapping(target = "referenceDocument", source = "referenceDoc")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "generalInformationHistory", ignore = true)
-    DiagramDescription fromDTO(SaveProcessRequestDTO.Request.Diagram.Description dto);
+    DiagramDescription fromDTO(SaveProcessRequestDTO.Diagram.Description dto);
 
     @Mapping(target = "vieDefinition", source = "vietnamese")
     @Mapping(target = "enDefinition", source = "english")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "generalInformationHistory", ignore = true)
-    TermAbbreviation fromDTO(SaveProcessRequestDTO.Request.TermAbbreviation dto);
+    TermAbbreviation fromDTO(SaveProcessRequestDTO.TermAbbreviation dto);
 
     @Mapping(target = "internalDocument", source = "internalDocuments")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "generalInformationHistory", ignore = true)
-    RelatedDocument fromDTO(SaveProcessRequestDTO.Request.RelatedDocument dto);
+    RelatedDocument fromDTO(SaveProcessRequestDTO.RelatedDocument dto);
 
     // Note: The target entity is 'RelatedDocumentTemplate'.
     // MapStruct will map fields with the same name automatically (name, fileId).
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "relatedDocument", ignore = true)
-    RelatedDocumentTemplate fromDTO(SaveProcessRequestDTO.Request.RelatedDocument.Template dto);
+    RelatedDocumentTemplate fromDTO(SaveProcessRequestDTO.RelatedDocument.Template dto);
 
     /**
      * Updates an existing GeneralInformationHistory entity from a DTO.
@@ -88,5 +88,5 @@ public interface SaveProcessRequestDTOMapper {
             @Mapping(target = "draft", ignore = true)
     })
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateFromDTO(@MappingTarget GeneralInformationHistory history, SaveProcessRequestDTO.Request dto);
+    void updateFromDTO(@MappingTarget GeneralInformationHistory history, SaveProcessRequestDTO dto);
 }

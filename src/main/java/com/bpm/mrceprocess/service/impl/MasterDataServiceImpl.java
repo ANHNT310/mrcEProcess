@@ -5,6 +5,7 @@ import com.bpm.mrceprocess.common.consts.ApplicationConst;
 import com.bpm.mrceprocess.common.enums.DocumentStatus;
 import com.bpm.mrceprocess.common.enums.EffectiveType;
 import com.bpm.mrceprocess.common.enums.ProcessScopeEnum;
+import com.bpm.mrceprocess.common.enums.WorkflowConfigScope;
 import com.bpm.mrceprocess.external.WorkflowService;
 import com.bpm.mrceprocess.external.payload.WorkflowDefinitionResDTO;
 import com.bpm.mrceprocess.persistence.repository.*;
@@ -71,5 +72,11 @@ public class MasterDataServiceImpl implements MasterDataService {
     public List<SelectItem> workflow() {
         List<WorkflowDefinitionResDTO> definitionResDTOS = workflowService.getWorkflowDefinitionConfigsByTenantId(ApplicationConst.WORKFLOW_TENANT);
         return definitionResDTOS.stream().map(m -> new SelectItem(m.getName(), m.getName())).toList();
+    }
+
+    @Override
+    public List<SelectItem> processWorkflow(WorkflowConfigScope scope) {
+        return workflowConfigRepository.findByScope(scope)
+                .stream().map(m -> new SelectItem(m.getId(), m.getDisplayName())).toList();
     }
 }

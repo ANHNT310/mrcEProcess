@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 
 public interface ProcessViewService {
 
-    Page<ProcessDetailInformationViewDTO> byUser(LazyLoadEventDTO eventDTO);
+    Page<ViewProcessDTO> byUser(LazyLoadEventDTO eventDTO);
 
     Page<ProcessDetailInformationPendingDTO> pending (LazyLoadEventDTO eventDTO);
 
@@ -20,5 +20,5 @@ public interface ProcessViewService {
 
     ProcessDetailDTO availableDetail (String generalId);
 
-    Page<GeneralInformationDTO> availableByScope (GeneralInformationType type, LazyLoadEventDTO eventDTO);
+    Page<ViewProcessDTO> availableByScope (GeneralInformationType type, LazyLoadEventDTO eventDTO);
 }

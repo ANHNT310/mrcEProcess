@@ -12,25 +12,24 @@ import com.bpm.mrceprocess.external.payload.WorkflowTaskSummaryDTO;
 import com.bpm.mrceprocess.mapping.*;
 import com.bpm.mrceprocess.persistence.entity.GeneralInformation;
 import com.bpm.mrceprocess.persistence.entity.GeneralInformationHistory;
+import com.bpm.mrceprocess.persistence.entity.GeneralInformationHistoryTicket;
 import com.bpm.mrceprocess.persistence.entity.ProcessDetailInformationView;
-import com.bpm.mrceprocess.persistence.repository.GeneralInformationHistoryRepository;
-import com.bpm.mrceprocess.persistence.repository.GeneralInformationRepository;
-import com.bpm.mrceprocess.persistence.repository.ProcessDetailInformationViewRepository;
+import com.bpm.mrceprocess.persistence.repository.*;
+import com.bpm.mrceprocess.persistence.specification.GeneralInformationHistorySpecification;
+import com.bpm.mrceprocess.persistence.specification.GeneralInformationHistoryTicketSpecification;
+import com.bpm.mrceprocess.persistence.specification.GeneralInformationSpecification;
 import com.bpm.mrceprocess.security.AuthenticateComponent;
 import com.bpm.mrceprocess.service.ProcessViewService;
 import com.bpm.utils.FilterSpecification;
 import com.bpm.utils.PageableHelper;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,54 +44,49 @@ public class ProcessViewServiceImpl implements ProcessViewService {
     private final ProcessDetailDTOMapper processDetailDTOMapper;
     private final GeneralInformationHistoryMapper generalInformationHistoryMapper;
     private final GeneralInformationRepository generalInformationRepository;
-    private final GeneralInformationMapper generalInformationMapper;
     private final ProcessDetailInformationPendingDTOMapper processDetailInformationPendingDTOMapper;
+    private final GeneralInformationHistoryTicketRepository generalInformationHistoryTicketRepository;
+    private final ViewProcessDTOMapper viewProcessDTOMapper;
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProcessDetailInformationViewDTO> byUser(LazyLoadEventDTO eventDTO) {
+    public Page<ViewProcessDTO> byUser(LazyLoadEventDTO eventDTO) {
         String userId = authenticateComponent.getUserId();
-
-        Specification<ProcessDetailInformationView> userSpec = (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("createdBy"), userId);
-
-        Specification<ProcessDetailInformationView> filterSpec = new FilterSpecification<>(eventDTO);
-
-        Specification<ProcessDetailInformationView> combinedSpec = userSpec.and(filterSpec);
-
+        Specification<GeneralInformationHistory> combinedSpec = GeneralInformationHistorySpecification.filterByCreateBy(userId, eventDTO);
         Pageable pageable = PageableHelper.createPageable(eventDTO);
-
-        return processDetailInformationViewRepository.findAll(combinedSpec, pageable)
-                .map(processDetailInformationViewMapper::toDto);
+        return generalInformationHistoryRepository.findAll(combinedSpec, pageable)
+                .map(viewProcessDTOMapper::toDTO);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ProcessDetailInformationPendingDTO> pending(LazyLoadEventDTO eventDTO) {
+        // 1. Get all pending tasks from the workflow service.
         List<WorkflowTaskSummaryDTO> pending = workflowService.pending(ApplicationConst.WORKFLOW_TENANT);
 
         if (pending.isEmpty()) {
             return Page.empty(PageableHelper.createPageable(eventDTO));
         }
 
-        List<String> eProcessIds = pending.stream()
-                .map(m -> m.getVariables().getOrDefault("eProcessId", null).toString())
-                .toList();
-        Map<String, ProcessDetailInformationView> informationViews = processDetailInformationViewRepository.findByHistoryIdIn(eProcessIds)
-                .stream().collect(Collectors.toMap(ProcessDetailInformationView::getHistoryId, m -> m));
+        // 2. Create a map for efficient lookup and get a list of business codes.
+        Map<String, WorkflowTaskSummaryDTO> pendingTasksMap = pending.stream()
+                .collect(Collectors.toMap(WorkflowTaskSummaryDTO::getBusinessKey, task -> task, (first, second) -> first));
+        List<String> businessCodes = new ArrayList<>(pendingTasksMap.keySet());
 
-        List<ProcessDetailInformationPendingDTO> informationPendingDTOS = new ArrayList<>();
-        pending.forEach(m -> {
-            String eProcessId = m.getVariables().getOrDefault("eProcessId", null).toString();
-            if (!StringUtils.isEmpty(eProcessId)) {
-                ProcessDetailInformationView view = informationViews.get(eProcessId);
-                if (view == null) {
-                    return;
-                }
-                informationPendingDTOS.add(processDetailInformationPendingDTOMapper.toDTO(view, m));
-            }
+        // 3. Use the dedicated specification to filter tickets based on pending business codes and the global filter.
+        String globalFilter = eventDTO.getGlobalFilter();
+        Specification<GeneralInformationHistoryTicket> spec =
+                GeneralInformationHistoryTicketSpecification.createFilter(businessCodes, globalFilter);
+
+        // 4. Create pageable and query for a page of tickets.
+        Pageable pageable = PageableHelper.createPageable(eventDTO);
+        Page<GeneralInformationHistoryTicket> ticketsPage = generalInformationHistoryTicketRepository.findAll(spec, pageable);
+
+        return ticketsPage.map(ticket -> {
+            GeneralInformationHistory history = ticket.getInformationHistory();
+            WorkflowTaskSummaryDTO summaryDTO = pendingTasksMap.getOrDefault(ticket.getBusinessCode(), null);
+            return processDetailInformationPendingDTOMapper.toDTO(history, summaryDTO);
         });
-
-        return PageableHelper.createPageFromList(informationPendingDTOS, eventDTO);
     }
 
     @Override
@@ -120,7 +114,7 @@ public class ProcessViewServiceImpl implements ProcessViewService {
     }
 
     @Override
-    public Page<GeneralInformationHistoryDTO> histories (String generalId, LazyLoadEventDTO eventDTO) {
+    public Page<GeneralInformationHistoryDTO> histories(String generalId, LazyLoadEventDTO eventDTO) {
         Specification<GeneralInformationHistory> historySpecification = (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("general_information_id"), generalId);
 
@@ -147,18 +141,10 @@ public class ProcessViewServiceImpl implements ProcessViewService {
     }
 
     @Override
-    public Page<GeneralInformationDTO> availableByScope(GeneralInformationType type, LazyLoadEventDTO eventDTO) {
-
-        Specification<GeneralInformation> specification = (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("type"), type);
-
-        Specification<GeneralInformation> filterSpec = new FilterSpecification<>(eventDTO);
-
-        Specification<GeneralInformation> combinedSpec = specification.and(filterSpec);
-
+    public Page<ViewProcessDTO> availableByScope(GeneralInformationType type, LazyLoadEventDTO eventDTO) {
+        Specification<GeneralInformation> combinedSpec = GeneralInformationSpecification.filterAvailableAndByType(type.name(), eventDTO);
         Pageable pageable = PageableHelper.createPageable(eventDTO);
-
-        return generalInformationRepository.findAll(combinedSpec, pageable).map(generalInformationMapper::toDto);
+        return generalInformationRepository.findAll(combinedSpec, pageable).map(viewProcessDTOMapper::toDTO);
     }
 
 }

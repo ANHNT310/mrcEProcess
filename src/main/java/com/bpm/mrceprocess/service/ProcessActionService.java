@@ -5,7 +5,9 @@ import com.bpm.mrceprocess.common.enums.ProcessActionSaveType;
 
 public interface ProcessActionService {
 
-    SaveProcessRequestDTO.Response save(ProcessActionSaveType type, SaveProcessRequestDTO.Request request);
+    SaveProcessResponseDTO save(ProcessActionSaveType type, SaveProcessRequestDTO request);
+
+    DeactivateProcessResponseDTO deactivate (DeactivateProcessRequestDTO request);
 
     void deleteDraft (String historyId);
 
@@ -14,8 +16,6 @@ public interface ProcessActionService {
     void workflowCanceled(ProcessCanceledEventDTO eventDTO);
 
     void workflowMoveNextStep(UserTaskCreatedEventDTO eventDTO);
-
-    SubmitDeactivateProcessDTO.Response submitDeactivate(SubmitDeactivateProcessDTO.Request request);
 
     void deactivateProcess(String historyId);
 }
