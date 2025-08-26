@@ -14,8 +14,6 @@ public interface ProcessViewService {
 
     ProcessDetailDTO detail (String processDetailId);
 
-    Page<ProcessDetailInformationViewDTO> available(ProcessScopeEnum scope, LazyLoadEventDTO eventDTO);
-
     Page<GeneralInformationHistoryDTO> histories (String generalId, LazyLoadEventDTO eventDTO);
 
     ProcessDetailDTO availableDetail (String generalId);

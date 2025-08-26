@@ -77,7 +77,7 @@ public class ProcessActionServiceImpl implements ProcessActionService {
         informationHistory.setVersion(countByGeneral + 1);
         informationHistory.setGeneralInformation(generalInformation);
 
-        informationHistory = historyRepository.save(informationHistory);
+        informationHistory = historyRepository.saveAndFlush(informationHistory);
 
         if (ProcessActionSaveType.submit.equals(type)) {
             Map<String, Object> createPayload = new HashMap<>();

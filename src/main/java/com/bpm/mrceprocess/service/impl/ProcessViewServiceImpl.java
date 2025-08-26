@@ -98,22 +98,6 @@ public class ProcessViewServiceImpl implements ProcessViewService {
     }
 
     @Override
-    public Page<ProcessDetailInformationViewDTO> available(ProcessScopeEnum scope, LazyLoadEventDTO eventDTO) {
-
-        Specification<ProcessDetailInformationView> scopeSpec = (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("generalScope"), scope.name());
-
-        Specification<ProcessDetailInformationView> filterSpec = new FilterSpecification<>(eventDTO);
-
-        Specification<ProcessDetailInformationView> combinedSpec = scopeSpec.and(filterSpec);
-
-        Pageable pageable = PageableHelper.createPageable(eventDTO);
-
-        return processDetailInformationViewRepository.findAll(combinedSpec, pageable)
-                .map(processDetailInformationViewMapper::toDto);
-    }
-
-    @Override
     public Page<GeneralInformationHistoryDTO> histories(String generalId, LazyLoadEventDTO eventDTO) {
         Specification<GeneralInformationHistory> historySpecification = (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("general_information_id"), generalId);
