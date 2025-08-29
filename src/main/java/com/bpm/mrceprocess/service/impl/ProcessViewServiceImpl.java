@@ -7,6 +7,7 @@ import com.bpm.mrceprocess.common.consts.ApplicationConst;
 import com.bpm.mrceprocess.common.dtos.*;
 import com.bpm.mrceprocess.common.enums.GeneralInformationType;
 import com.bpm.mrceprocess.common.enums.ProcessScopeEnum;
+import com.bpm.mrceprocess.external.DocumentService;
 import com.bpm.mrceprocess.external.WorkflowService;
 import com.bpm.mrceprocess.external.payload.WorkflowTaskSummaryDTO;
 import com.bpm.mrceprocess.mapping.*;
@@ -28,6 +29,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.io.IOException;
+import java.io.InputStream;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import feign.Response;
+
+import com.bpm.mrceprocess.mapping.*;
+import com.bpm.mrceprocess.persistence.entity.*;
+import com.bpm.mrceprocess.persistence.repository.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -47,6 +57,9 @@ public class ProcessViewServiceImpl implements ProcessViewService {
     private final ProcessDetailInformationPendingDTOMapper processDetailInformationPendingDTOMapper;
     private final GeneralInformationHistoryTicketRepository generalInformationHistoryTicketRepository;
     private final ViewProcessDTOMapper viewProcessDTOMapper;
+    private final DocumentService documentService;
+    private final TermAbbreviationRepository termAbbreviationRepository;
+    private final TermAbbreviationMapper termAbbreviationMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -129,6 +142,26 @@ public class ProcessViewServiceImpl implements ProcessViewService {
         Specification<GeneralInformation> combinedSpec = GeneralInformationSpecification.filterAvailableAndByType(type.name(), eventDTO);
         Pageable pageable = PageableHelper.createPageable(eventDTO);
         return generalInformationRepository.findAll(combinedSpec, pageable).map(viewProcessDTOMapper::toDTO);
+    }
+
+    @Override
+    public Resource generateExcel(String processDetailId, String templateCode) {
+        List<TermAbbreviation> termAbbreviations = termAbbreviationRepository.findByGeneralInformationHistoryId(processDetailId);
+        if (termAbbreviations.isEmpty()) {
+            throw new IllegalArgumentException("No Term Abbreviation data found to export to Excel.");
+        }
+        List<TermAbbreviationDTO> termAbbreviationDTOS = termAbbreviations.stream()
+                .map(termAbbreviationMapper::toDTO)
+                .toList();
+
+        Response response = documentService.exportExcel(termAbbreviationDTOS, templateCode);
+
+        try (InputStream inputStream = response.body().asInputStream()) {
+            byte[] fileBytes = inputStream.readAllBytes();
+            return new ByteArrayResource(fileBytes);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read Excel response from document service", e);
+        }
     }
 
 }

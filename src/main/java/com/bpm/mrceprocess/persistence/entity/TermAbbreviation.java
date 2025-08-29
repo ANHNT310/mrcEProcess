@@ -14,8 +14,10 @@ public class TermAbbreviation {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column(length = 500)
     private String vieDefinition;
 
+    @Column(length = 500)
     private String enDefinition;
 
     @ManyToOne(fetch = FetchType.LAZY)

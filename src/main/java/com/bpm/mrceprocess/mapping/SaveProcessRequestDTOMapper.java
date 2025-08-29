@@ -89,4 +89,26 @@ public interface SaveProcessRequestDTOMapper {
     })
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateFromDTO(@MappingTarget GeneralInformationHistory history, SaveProcessRequestDTO dto);
+
+
+    @AfterMapping
+    default void setParentReferences(@MappingTarget GeneralInformationHistory history){
+        // the original documents need the history entity to know the general_information_history_id
+        if(history != null && history.getOriginalDocuments() != null){
+            for(OriginalDocument doc : history.getOriginalDocuments()){
+                doc.setGeneralInformationHistory(history);
+            }
+        }
+        // this need the history to know the history id too.
+        if(history != null && history.getRelatedDocument() != null){
+            history.getRelatedDocument().setGeneralInformationHistory(history);
+        }
+    }
+
+    @AfterMapping
+    default void setRelatedDocument(@MappingTarget RelatedDocument relatedDocument) {
+        if (relatedDocument != null && relatedDocument.getTemplates() != null) {
+            relatedDocument.getTemplates().forEach(item -> item.setRelatedDocument(relatedDocument));
+        }
+    }
 }

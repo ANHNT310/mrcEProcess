@@ -29,5 +29,6 @@ public class GeneralInformationHistoryDTO implements Serializable {
     String workflow;
     String name;
     String shortDescription;
+    String status;
 
 }

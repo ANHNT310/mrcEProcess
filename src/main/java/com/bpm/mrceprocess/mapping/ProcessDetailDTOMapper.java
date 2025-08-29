@@ -17,6 +17,7 @@ public interface ProcessDetailDTOMapper {
     @Mapping(target = "relatedDocuments", source = "generalInformationHistory.relatedDocument")
     @Mapping(target = "diagramDescriptions", source = "generalInformationHistory.diagramDescriptions")
     @Mapping(target = "termAbbreviations", source = "generalInformationHistory.termAbbreviations")
+    @Mapping(target = "relatedDocuments.internalDocuments", source = "generalInformationHistory.relatedDocument.internalDocument")
     ProcessDetailDTO toDTO (GeneralInformationHistory generalInformationHistory);
 
     @AfterMapping

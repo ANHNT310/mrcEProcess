@@ -14,6 +14,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 @RestController
 @RequestMapping("/process/view")
 @RequiredArgsConstructor
@@ -58,5 +66,30 @@ public class ProcessViewController {
             @Parameter(description = "The scope of the processes to retrieve", required = true) @PathVariable String generalId,
             @RequestBody LazyLoadEventDTO eventDTO) {
         return BaseResponse.success(PageResponse.from(processViewService.histories(generalId, eventDTO)));
+    }
+
+    @PostMapping("/export/{processDetailId}")
+    @Operation(summary = "Download term and abbreviation", description = "Download term and abbreviation from general information history")
+    public ResponseEntity<Resource> exportExcel(
+            @Parameter(description = "ID of the process history record", required = true) @PathVariable String processDetailId,
+            @Parameter(description = "Code for the template", required = true) @RequestParam String templateCode) throws IOException {
+
+        Resource resource = processViewService.generateExcel(processDetailId, templateCode);
+
+        // Tạo timestamp theo định dạng yyyyMMdd_HHmmss
+        String timestamp = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+
+        String fileName = templateCode + "_" + timestamp + ".xlsx";
+
+        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + fileName + "\"; filename*=UTF-8''" + encodedFileName)
+                .header("Access-Control-Expose-Headers", "Content-Disposition")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentLength(resource.contentLength())
+                .body(resource);
     }
 }

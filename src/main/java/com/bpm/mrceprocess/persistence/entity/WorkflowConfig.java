@@ -29,6 +29,6 @@ public class WorkflowConfig extends AuditorProvider{
     private GeneralInformationType type;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "scope", unique = true, nullable = false)
+    @Column(name = "scope", nullable = false)
     private WorkflowConfigScope scope = WorkflowConfigScope.NEW;
 }
